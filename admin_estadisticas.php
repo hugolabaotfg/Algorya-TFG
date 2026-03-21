@@ -1,35 +1,23 @@
 <?php
 session_start();
 require 'includes/db.php';
-
 if (!isset($_SESSION['rol']) || $_SESSION['rol'] !== 'admin') {
     header("Location: index.php");
     exit();
 }
 
-// Extraer datos para los gráficos
-// 1. Usuarios registrados
-$res_usuarios = $conn->query("SELECT COUNT(*) as total FROM usuarios WHERE rol != 'admin'");
-$total_usuarios = $res_usuarios->fetch_assoc()['total'];
+$u_count = $conn->query("SELECT COUNT(*) as t FROM usuarios")->fetch_assoc()['t'];
+$p_count = $conn->query("SELECT COUNT(*) as t FROM productos")->fetch_assoc()['t'];
+$s_sum = $conn->query("SELECT SUM(stock) as t FROM productos")->fetch_assoc()['t'];
 
-// 2. Productos en catálogo
-$res_productos = $conn->query("SELECT COUNT(*) as total FROM productos");
-$total_productos = $res_productos->fetch_assoc()['total'];
-
-// 3. Stock total (suma de unidades)
-$res_stock = $conn->query("SELECT SUM(stock) as total_stock FROM productos");
-$total_stock = $res_stock->fetch_assoc()['total_stock'];
-
-// 4. Los 5 productos más caros (Para el gráfico de barras)
-$nombres_prod = [];
-$precios_prod = [];
-$res_top = $conn->query("SELECT nombre, precio FROM productos ORDER BY precio DESC LIMIT 5");
-while ($row = $res_top->fetch_assoc()) {
-    $nombres_prod[] = $row['nombre'];
-    $precios_prod[] = $row['precio'];
+$nombres = [];
+$precios = [];
+$top = $conn->query("SELECT nombre, precio FROM productos ORDER BY precio DESC LIMIT 5");
+while ($r = $top->fetch_assoc()) {
+    $nombres[] = $r['nombre'];
+    $precios[] = $r['precio'];
 }
 ?>
-
 <!DOCTYPE html>
 <html lang="es" data-bs-theme="light">
 
@@ -44,93 +32,69 @@ while ($row = $res_top->fetch_assoc()) {
 </head>
 
 <body class="d-flex flex-column min-vh-100">
-
     <nav class="navbar navbar-expand-lg sticky-top shadow-sm">
         <div class="container">
             <a class="navbar-brand fw-bold fs-3 text-decoration-none" href="index.php">
                 <i class="bi bi-box-seam-fill text-primary me-1"></i><span class="text-primary">Algorya</span><span
                     class="premium-text" style="font-size: 0.55em;">.Admin</span>
             </a>
-            <div class="d-flex gap-3 align-items-center">
-                <a href="admin_pedidos.php" class="btn btn-link premium-text text-decoration-none">Pedidos</a>
-                <a href="admin_usuarios.php" class="btn btn-link premium-text text-decoration-none">Clientes</a>
+            <div class="d-flex align-items-center gap-3">
+                <div class="dropdown">
+                    <button class="btn btn-primary btn-sm rounded-pill dropdown-toggle px-3 shadow-sm" type="button"
+                        data-bs-toggle="dropdown">
+                        <i class="bi bi-gear-fill me-1"></i> Panel de Control
+                    </button>
+                    <ul class="dropdown-menu dropdown-menu-end premium-card border-0 shadow-lg mt-2 py-2">
+                        <li><a class="dropdown-item premium-text py-2" href="admin_pedidos.php">Pedidos</a></li>
+                        <li><a class="dropdown-item premium-text py-2" href="admin_usuarios.php">Clientes</a></li>
+                        <li><a class="dropdown-item premium-text py-2" href="admin_estadisticas.php">Estadísticas</a>
+                        </li>
+                        <li><a class="dropdown-item premium-text py-2" href="admin_mailing.php">Mailing</a></li>
+                    </ul>
+                </div>
                 <div id="darkModeToggle"><i class="bi bi-moon-stars-fill fs-6"></i></div>
-                <a href="index.php" class="btn btn-outline-primary btn-sm rounded-pill">Ir a la Tienda</a>
+                <a href="logout.php" class="btn btn-outline-danger btn-sm rounded-pill"><i
+                        class="bi bi-box-arrow-right"></i></a>
             </div>
         </div>
     </nav>
-
     <div class="container mt-5 flex-grow-1">
-        <h2 class="fw-bold premium-text mb-4"><i class="bi bi-bar-chart-fill text-primary me-2"></i> Dashboard de
-            Inteligencia de Negocio</h2>
-
+        <h2 class="fw-bold premium-text mb-4"><i class="bi bi-bar-chart-fill text-primary"></i> Estadísticas Algorya
+        </h2>
         <div class="row g-4 mb-5">
             <div class="col-md-4">
-                <div class="card premium-card border-0 p-4 rounded-4 text-center">
-                    <h6 class="premium-muted fw-bold">CLIENTES REGISTRADOS</h6>
-                    <h1 class="display-4 fw-bold text-primary">
-                        <?php echo $total_usuarios; ?>
+                <div class="card premium-card border-0 p-4 text-center rounded-4">
+                    <h6>CLIENTES</h6>
+                    <h1 class="text-primary">
+                        <?php echo $u_count; ?>
                     </h1>
                 </div>
             </div>
             <div class="col-md-4">
-                <div class="card premium-card border-0 p-4 rounded-4 text-center">
-                    <h6 class="premium-muted fw-bold">PRODUCTOS ACTIVOS</h6>
-                    <h1 class="display-4 fw-bold text-success">
-                        <?php echo $total_productos; ?>
+                <div class="card premium-card border-0 p-4 text-center rounded-4">
+                    <h6>PRODUCTOS</h6>
+                    <h1 class="text-success">
+                        <?php echo $p_count; ?>
                     </h1>
                 </div>
             </div>
             <div class="col-md-4">
-                <div class="card premium-card border-0 p-4 rounded-4 text-center">
-                    <h6 class="premium-muted fw-bold">UNIDADES EN STOCK</h6>
-                    <h1 class="display-4 fw-bold text-warning">
-                        <?php echo $total_stock; ?>
+                <div class="card premium-card border-0 p-4 text-center rounded-4">
+                    <h6>STOCK TOTAL</h6>
+                    <h1 class="text-warning">
+                        <?php echo $s_sum; ?>
                     </h1>
                 </div>
             </div>
         </div>
-
-        <div class="row">
-            <div class="col-12">
-                <div class="card premium-card border-0 p-4 rounded-4">
-                    <h5 class="premium-text fw-bold mb-4">Top 5 Productos con Mayor Valor (Distribución de Precios)</h5>
-                    <canvas id="graficoPrecios" height="100"></canvas>
-                </div>
-            </div>
-        </div>
+        <div class="card premium-card border-0 p-4 rounded-4 shadow-sm"><canvas id="graficoPrecios"
+                height="100"></canvas></div>
     </div>
-
     <script>
-        // Configuración dinámica del gráfico inyectando PHP en JS
         const ctx = document.getElementById('graficoPrecios').getContext('2d');
-        const nombres = <?php echo json_encode($nombres_prod); ?>;
-        const precios = <?php echo json_encode($precios_prod); ?>;
-
-        new Chart(ctx, {
-            type: 'bar',
-            data: {
-                labels: nombres,
-                datasets: [{
-                    label: 'Precio (€)',
-                    data: precios,
-                    backgroundColor: 'rgba(59, 130, 246, 0.7)',
-                    borderColor: 'rgba(59, 130, 246, 1)',
-                    borderWidth: 2,
-                    borderRadius: 5
-                }]
-            },
-            options: {
-                responsive: true,
-                plugins: {
-                    legend: { display: false }
-                },
-                scales: {
-                    y: { beginAtZero: true }
-                }
-            }
-        });
+        new Chart(ctx, { type: 'bar', data: { labels: <?php echo json_encode($nombres); ?>, datasets: [{ label: 'Precio (€)', data: <?php echo json_encode($precios); ?>, backgroundColor: '#3b82f6' }] } });
     </script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 </body>
 
 </html>

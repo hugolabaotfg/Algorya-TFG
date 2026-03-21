@@ -1,133 +1,83 @@
 <?php
 session_start();
 require 'includes/db.php';
-
-if (!isset($_SESSION['user_id']) || $_SESSION['rol'] !== 'admin') {
-    header("Location: login.php");
+if (!isset($_SESSION['rol']) || $_SESSION['rol'] !== 'admin') {
+    header("Location: index.php");
     exit();
 }
 
-$mensaje = "";
-$tipo_mensaje = "";
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['guardar'])) {
+    $nombre = $conn->real_escape_string($_POST['nombre']);
+    $precio = (float) $_POST['precio'];
+    $stock = (int) $_POST['stock'];
 
-if ($_SERVER["REQUEST_METHOD"] == "POST") {
-    $nombre = $_POST['nombre'];
-    $desc = $_POST['descripcion'];
-    $precio = $_POST['precio'];
-    $stock = $_POST['stock'];
-    
-    $nombre_imagen = "default.jpg"; 
-    
-    if (isset($_FILES['imagen']) && $_FILES['imagen']['error'] === 0) {
-        $directorio = "img/";
-        $nombre_archivo = "producto_" . uniqid() . "_" . basename($_FILES["imagen"]["name"]);
-        $ruta_destino = $directorio . $nombre_archivo;
-        
-        if (move_uploaded_file($_FILES["imagen"]["tmp_name"], $ruta_destino)) {
-            $nombre_imagen = $nombre_archivo;
-        } else {
-            $mensaje = "Error al subir la imagen al servidor.";
-            $tipo_mensaje = "danger";
-        }
+    // Lógica básica de subida de foto
+    $foto = 'default.jpg';
+    if (isset($_FILES['foto']) && $_FILES['foto']['error'] === 0) {
+        $ext = pathinfo($_FILES['foto']['name'], PATHINFO_EXTENSION);
+        $foto = 'prod_' . time() . '.' . $ext;
+        move_uploaded_file($_FILES['foto']['tmp_name'], 'img/' . $foto);
     }
 
-    if (empty($mensaje)) {
-        $sql = "INSERT INTO productos (nombre, descripcion, precio, stock, imagen) VALUES (?, ?, ?, ?, ?)";
-        $stmt = $conn->prepare($sql);
-        $stmt->bind_param("ssdis", $nombre, $desc, $precio, $stock, $nombre_imagen);
-        
-        if ($stmt->execute()) {
-            $mensaje = "¡Producto guardado en el catálogo!";
-            $tipo_mensaje = "success";
-        } else {
-            $mensaje = "Error de BD: " . $conn->error;
-            $tipo_mensaje = "danger";
-        }
-    }
+    $conn->query("INSERT INTO productos (nombre, precio, stock, imagen) VALUES ('$nombre', $precio, $stock, '$foto')");
+    header("Location: index.php");
 }
 ?>
 <!DOCTYPE html>
-<html lang="es">
+<html lang="es" data-bs-theme="light">
+
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Añadir Producto | Algorya</title>
+    <title>Añadir | Algorya Admin</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css">
-    <style>
-        body { background-color: #f9f9f9; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; color: #333; }
-        .navbar { background: #fff !important; border-bottom: 1px solid #eaeaea; }
-        .navbar-brand { font-weight: 800; color: #111 !important; }
-        .admin-card { background: #fff; border: 1px solid #eaeaea; border-radius: 16px; box-shadow: 0 10px 30px rgba(0,0,0,0.03); overflow: hidden; }
-        .admin-card-header { padding: 25px 30px; border-bottom: 1px solid #eaeaea; background: #fff; }
-        .form-control, .input-group-text { border-radius: 8px; border-color: #e2e2e2; background-color: #fafafa; }
-        .form-control:focus { border-color: #111; box-shadow: none; background-color: #fff; }
-        .btn-dark { border-radius: 30px; font-weight: 600; padding: 10px 24px; }
-    </style>
+    <link rel="stylesheet" href="estilos.css">
+    <script src="tema.js"></script>
 </head>
-<body>
 
-    <nav class="navbar navbar-light sticky-top shadow-sm mb-5">
+<body class="d-flex flex-column min-vh-100">
+    <nav class="navbar navbar-expand-lg sticky-top shadow-sm">
         <div class="container">
-            <a class="navbar-brand" href="index.php"><i class="bi bi-bag-check-fill"></i> Algorya</a>
-            <a href="index.php" class="btn btn-outline-dark btn-sm rounded-pill"><i class="bi bi-x-lg"></i> Cerrar Panel</a>
+            <a class="navbar-brand fw-bold fs-3 text-decoration-none" href="index.php"><span
+                    class="text-primary">Algorya</span><span class="premium-text"
+                    style="font-size: 0.55em;">.Admin</span></a>
+            <div class="d-flex align-items-center gap-3">
+                <div class="dropdown"><button class="btn btn-primary btn-sm rounded-pill dropdown-toggle px-3"
+                        type="button" data-bs-toggle="dropdown">Gestión</button>
+                    <ul class="dropdown-menu dropdown-menu-end premium-card border-0 shadow-lg mt-2 py-2">
+                        <li><a class="dropdown-item premium-text py-2" href="admin_pedidos.php">Pedidos</a></li>
+                    </ul>
+                </div>
+                <div id="darkModeToggle"><i class="bi bi-moon-stars-fill fs-6"></i></div>
+            </div>
         </div>
     </nav>
-
-    <div class="container pb-5">
+    <div class="container mt-5 flex-grow-1">
         <div class="row justify-content-center">
-            <div class="col-md-8 col-lg-7">
-                
-                <div class="admin-card">
-                    <div class="admin-card-header d-flex justify-content-between align-items-center">
-                        <h4 class="fw-bold m-0 text-dark">Nuevo Producto</h4>
-                    </div>
-                    
-                    <div class="card-body p-4 p-md-5">
-                        <?php if ($mensaje): ?>
-                            <div class="alert alert-<?php echo $tipo_mensaje; ?> border-0 rounded-3 mb-4" role="alert">
-                                <i class="bi <?php echo $tipo_mensaje == 'success' ? 'bi-check-circle-fill' : 'bi-exclamation-circle-fill'; ?>"></i> <?php echo $mensaje; ?>
-                            </div>
-                        <?php endif; ?>
-
-                        <form method="POST" enctype="multipart/form-data">
-                            <div class="mb-4">
-                                <label class="form-label fw-bold small text-muted">Nombre del Producto</label>
-                                <input type="text" name="nombre" class="form-control" required>
-                            </div>
-
-                            <div class="mb-4">
-                                <label class="form-label fw-bold small text-muted">Descripción</label>
-                                <textarea name="descripcion" class="form-control" rows="3"></textarea>
-                            </div>
-
-                            <div class="row">
-                                <div class="col-md-6 mb-4">
-                                    <label class="form-label fw-bold small text-muted">Precio</label>
-                                    <div class="input-group">
-                                        <input type="number" step="0.01" name="precio" class="form-control border-end-0" required>
-                                        <span class="input-group-text bg-transparent border-start-0 text-muted">€</span>
-                                    </div>
-                                </div>
-                                <div class="col-md-6 mb-4">
-                                    <label class="form-label fw-bold small text-muted">Stock Inicial</label>
-                                    <input type="number" name="stock" class="form-control" required>
-                                </div>
-                            </div>
-
-                            <div class="mb-5">
-                                <label class="form-label fw-bold small text-muted">Fotografía</label>
-                                <input type="file" name="imagen" class="form-control" accept="image/*">
-                            </div>
-
-                            <button type="submit" class="btn btn-dark w-100 py-3 shadow-sm">Guardar en Catálogo</button>
-                        </form>
-                    </div>
+            <div class="col-md-6">
+                <div class="card premium-card border-0 rounded-4 p-5 shadow-sm">
+                    <h3 class="fw-bold premium-text mb-4"><i class="bi bi-plus-circle text-success me-2"></i> Nuevo
+                        Producto</h3>
+                    <form action="add_product.php" method="POST" enctype="multipart/form-data">
+                        <div class="mb-3"><label class="fw-bold small">NOMBRE</label><input type="text" name="nombre"
+                                class="form-control premium-input" required></div>
+                        <div class="row mb-3">
+                            <div class="col"><label class="fw-bold small">PRECIO</label><input type="number" step="0.01"
+                                    name="precio" class="form-control premium-input" required></div>
+                            <div class="col"><label class="fw-bold small">STOCK</label><input type="number" name="stock"
+                                    class="form-control premium-input" required></div>
+                        </div>
+                        <div class="mb-4"><label class="fw-bold small">FOTO PRODUCTO</label><input type="file"
+                                name="foto" class="form-control premium-input" required></div>
+                        <button type="submit" name="guardar"
+                            class="btn btn-success w-100 rounded-pill py-2 fw-bold shadow-sm">PUBLICAR EN
+                            CATÁLOGO</button>
+                    </form>
                 </div>
-
             </div>
         </div>
     </div>
-
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 </body>
+
 </html>

@@ -1,105 +1,129 @@
 <?php
 session_start();
 require 'includes/db.php';
-
-// Control de Acceso Estricto (RBAC)
-if (!isset($_SESSION['user_id']) || $_SESSION['rol'] !== 'admin') {
+if (!isset($_SESSION['rol']) || $_SESSION['rol'] !== 'admin') {
     header("Location: index.php");
     exit();
 }
 
-// 1. Calcular Facturación Total
-$res_total = $conn->query("SELECT SUM(total) as ingresos FROM pedidos");
-$ingresos_totales = ($res_total && $row_total = $res_total->fetch_assoc()) ? $row_total['ingresos'] : 0;
-
-// 2. Obtener la lista de pedidos con los datos del cliente
-$sql_pedidos = "SELECT p.id, p.total, p.fecha, p.metodo_pago, u.nombre, u.email 
-                FROM pedidos p 
-                JOIN usuarios u ON p.usuario_id = u.id 
-                ORDER BY p.fecha DESC";
-$res_pedidos = $conn->query($sql_pedidos);
+$mensaje = '';
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['actualizar_estado'])) {
+    $pedido_id = (int) $_POST['pedido_id'];
+    $nuevo_estado = $conn->real_escape_string($_POST['estado']);
+    $sql_update = "UPDATE pedidos SET estado = '$nuevo_estado' WHERE id = $pedido_id";
+    if ($conn->query($sql_update)) {
+        $mensaje = "<div class='alert alert-success alert-dismissible fade show' role='alert'><i class='bi bi-check-circle-fill me-2'></i>Pedido #$pedido_id actualizado a $nuevo_estado.<button type='button' class='btn-close' data-bs-dismiss='alert'></button></div>";
+    }
+}
+$sql = "SELECT p.*, u.nombre as cliente_nombre FROM pedidos p JOIN usuarios u ON p.usuario_id = u.id ORDER BY p.fecha DESC";
+$resultado = $conn->query($sql);
 ?>
-
 <!DOCTYPE html>
-<html lang="es">
+<html lang="es" data-bs-theme="light">
+
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Panel de Ventas | Algorya</title>
+    <title>Pedidos | Algorya Admin</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css">
+    <link rel="stylesheet" href="estilos.css">
+    <script src="tema.js"></script>
 </head>
-<body class="bg-light">
 
-    <nav class="navbar navbar-dark bg-dark sticky-top shadow-sm">
+<body class="d-flex flex-column min-vh-100">
+    <nav class="navbar navbar-expand-lg sticky-top shadow-sm">
         <div class="container">
-            <a class="navbar-brand" href="index.php">
-                <i class="bi bi-shield-lock text-warning"></i> Administración TFG
+            <a class="navbar-brand fw-bold fs-3 text-decoration-none" href="index.php">
+                <i class="bi bi-box-seam-fill text-primary me-1"></i><span class="text-primary">Algorya</span><span
+                    class="premium-text" style="font-size: 0.55em;">.Admin</span>
             </a>
-            <div class="d-flex align-items-center">
-                <span class="text-white me-3"><i class="bi bi-person-badge"></i> <?php echo $_SESSION['nombre']; ?></span>
-                <a href="add_product.php" class="btn btn-outline-light btn-sm me-2">Catálogo</a>
-                <a href="logout.php" class="btn btn-danger btn-sm">Salir</a>
+            <div class="d-flex align-items-center gap-3">
+                <div class="dropdown">
+                    <button class="btn btn-primary btn-sm rounded-pill dropdown-toggle px-3 shadow-sm" type="button"
+                        data-bs-toggle="dropdown">
+                        <i class="bi bi-gear-fill me-1"></i> Panel de Control
+                    </button>
+                    <ul class="dropdown-menu dropdown-menu-end premium-card border-0 shadow-lg mt-2 py-2">
+                        <li>
+                            <h6 class="dropdown-header premium-muted small fw-bold">OPERACIONES</h6>
+                        </li>
+                        <li><a class="dropdown-item premium-text py-2" href="admin_pedidos.php"><i
+                                    class="bi bi-receipt me-2 text-primary"></i>Pedidos</a></li>
+                        <li><a class="dropdown-item premium-text py-2" href="admin_usuarios.php"><i
+                                    class="bi bi-people me-2 text-primary"></i>Clientes</a></li>
+                        <li><a class="dropdown-item premium-text py-2" href="admin_estadisticas.php"><i
+                                    class="bi bi-bar-chart me-2 text-primary"></i>Estadísticas</a></li>
+                        <li><a class="dropdown-item premium-text py-2" href="admin_mailing.php"><i
+                                    class="bi bi-envelope-at me-2 text-primary"></i>Mailing</a></li>
+                        <li>
+                            <hr class="dropdown-divider" style="border-color: var(--border-color);">
+                        </li>
+                        <li><a class="dropdown-item premium-text py-2" href="add_product.php"><i
+                                    class="bi bi-plus-circle me-2 text-success"></i>Nuevo Producto</a></li>
+                    </ul>
+                </div>
+                <div id="darkModeToggle"><i class="bi bi-moon-stars-fill fs-6"></i></div>
+                <a href="logout.php" class="btn btn-outline-danger btn-sm rounded-pill"><i
+                        class="bi bi-box-arrow-right"></i></a>
             </div>
         </div>
     </nav>
-
-    <div class="container mt-5">
-        <div class="row mb-4">
-            <div class="col-md-8">
-                <h2 class="fw-bold"><i class="bi bi-graph-up-arrow text-primary me-2"></i>Gestión de Pedidos</h2>
-                <p class="text-muted">Monitorización en tiempo real de las ventas del modelo Dropshipping.</p>
-            </div>
-            <div class="col-md-4">
-                <div class="card bg-primary text-white shadow border-0 rounded-4">
-                    <div class="card-body text-center">
-                        <h6 class="text-uppercase fw-bold opacity-75 mb-1">Facturación Total</h6>
-                        <h2 class="mb-0"><?php echo number_format($ingresos_totales ? $ingresos_totales : 0, 2); ?> €</h2>
-                    </div>
-                </div>
-            </div>
-        </div>
-
-        <div class="card shadow-sm border-0 rounded-4">
-            <div class="card-body p-0">
-                <div class="table-responsive">
-                    <table class="table table-hover align-middle mb-0">
-                        <thead class="table-light">
+    <div class="container mt-5 flex-grow-1">
+        <h2 class="fw-bold premium-text mb-4"><i class="bi bi-receipt text-primary me-2"></i> Gestión de Pedidos</h2>
+        <?php echo $mensaje; ?>
+        <div class="card premium-card border-0 rounded-4 overflow-hidden shadow-sm">
+            <div class="table-responsive">
+                <table class="table table-hover align-middle mb-0">
+                    <thead>
+                        <tr class="premium-muted small fw-bold">
+                            <th class="ps-4">ID</th>
+                            <th>CLIENTE</th>
+                            <th>FECHA</th>
+                            <th>TOTAL</th>
+                            <th>ESTADO</th>
+                            <th class="text-end pe-4">ACCIONES</th>
+                        </tr>
+                    </thead>
+                    <tbody class="premium-text">
+                        <?php while ($row = $resultado->fetch_assoc()): ?>
                             <tr>
-                                <th class="px-4 py-3">ID Pedido</th>
-                                <th>Fecha y Hora</th>
-                                <th>Cliente</th>
-                                <th>Email Contacto</th>
-                                <th>Método</th>
-                                <th class="text-end px-4">Importe</th>
+                                <td class="ps-4 fw-bold">#
+                                    <?php echo $row['id']; ?>
+                                </td>
+                                <td>
+                                    <div class="fw-bold">
+                                        <?php echo htmlspecialchars($row['cliente_nombre']); ?>
+                                    </div>
+                                </td>
+                                <td class="small">
+                                    <?php echo date('d/m/Y', strtotime($row['fecha'])); ?>
+                                </td>
+                                <td class="fw-bold text-success">
+                                    <?php echo number_format($row['total'], 2); ?> €
+                                </td>
+                                <td><span class="badge bg-primary rounded-pill px-3">
+                                        <?php echo $row['estado']; ?>
+                                    </span></td>
+                                <td class="text-end pe-4">
+                                    <form action="admin_pedidos.php" method="POST" class="d-flex justify-content-end gap-1">
+                                        <input type="hidden" name="pedido_id" value="<?php echo $row['id']; ?>">
+                                        <select name="estado" class="form-select form-select-sm premium-input w-auto">
+                                            <option value="Pendiente">Pendiente</option>
+                                            <option value="Enviado">Enviado</option>
+                                            <option value="Entregado">Entregado</option>
+                                        </select>
+                                        <button type="submit" name="actualizar_estado" class="btn btn-sm btn-primary"><i
+                                                class="bi bi-check2"></i></button>
+                                    </form>
+                                </td>
                             </tr>
-                        </thead>
-                        <tbody>
-                            <?php if ($res_pedidos && $res_pedidos->num_rows > 0): ?>
-                                <?php while ($pedido = $res_pedidos->fetch_assoc()): ?>
-                                    <tr>
-                                        <td class="px-4"><span class="badge bg-secondary">#<?php echo str_pad($pedido['id'], 5, "0", STR_PAD_LEFT); ?></span></td>
-                                        <td><?php echo date('d/m/Y H:i', strtotime($pedido['fecha'])); ?></td>
-                                        <td class="fw-bold"><?php echo htmlspecialchars($pedido['nombre']); ?></td>
-                                        <td><a href="mailto:<?php echo $pedido['email']; ?>" class="text-decoration-none"><?php echo $pedido['email']; ?></a></td>
-                                        <td><i class="bi bi-credit-card me-1"></i><?php echo $pedido['metodo_pago']; ?></td>
-                                        <td class="text-end px-4 fw-bold text-success"><?php echo number_format($pedido['total'], 2); ?> €</td>
-                                    </tr>
-                                <?php endwhile; ?>
-                            <?php else: ?>
-                                <tr>
-                                    <td colspan="6" class="text-center py-5 text-muted">
-                                        <i class="bi bi-inbox fs-1 d-block mb-2"></i>
-                                        Aún no hay pedidos registrados en el sistema.
-                                    </td>
-                                </tr>
-                            <?php endif; ?>
-                        </tbody>
-                    </table>
-                </div>
+                        <?php endwhile; ?>
+                    </tbody>
+                </table>
             </div>
         </div>
     </div>
-
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 </body>
+
 </html>
