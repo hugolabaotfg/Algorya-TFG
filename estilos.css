@@ -1,0 +1,194 @@
+/* === PALETA DE COLORES PREMIUM === */
+:root {
+    --bg-body: #f8fafc;
+    --bg-card: #ffffff;
+    --bg-nav: rgba(255, 255, 255, 0.85);
+    --text-main: #0f172a;
+    --text-muted: #64748b;
+    --border-color: #e2e8f0;
+    --hero-bg: linear-gradient(135deg, #f1f5f9 0%, #e2e8f0 100%);
+    --card-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -1px rgba(0, 0, 0, 0.03);
+    --hover-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+    --btn-add-bg: #0f172a;
+    --btn-add-text: #ffffff;
+    --img-opacity: 1;
+
+    /* Nuevas variables para Formularios y Modales */
+    --input-bg: #f1f5f9;
+    --input-border: #cbd5e1;
+    --input-focus: #3b82f6;
+}
+
+[data-bs-theme="dark"] {
+    --bg-body: #09090b;
+    --bg-card: #18181b;
+    --bg-nav: rgba(9, 9, 11, 0.85);
+    --text-main: #fafafa;
+    --text-muted: #a1a1aa;
+    --border-color: #27272a;
+    --hero-bg: radial-gradient(circle at 50% 0%, #18181b 0%, #09090b 100%);
+    --card-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.5);
+    --hover-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.7);
+    --btn-add-bg: #fafafa;
+    --btn-add-text: #09090b;
+    --img-opacity: 0.85;
+
+    /* Nuevas variables para Formularios y Modales en Oscuro */
+    --input-bg: #09090b;
+    --input-border: #3f3f46;
+    --input-focus: #3b82f6;
+}
+
+/* === ESTILOS BASE === */
+body {
+    background-color: var(--bg-body) !important;
+    color: var(--text-main);
+    font-family: 'Inter', sans-serif;
+    transition: background-color 0.3s ease, color 0.3s ease;
+}
+
+::-webkit-scrollbar {
+    width: 8px;
+}
+
+::-webkit-scrollbar-track {
+    background: var(--bg-body);
+}
+
+::-webkit-scrollbar-thumb {
+    background: var(--border-color);
+    border-radius: 10px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+    background: var(--text-muted);
+}
+
+/* === COMPONENTES === */
+.navbar {
+    background: var(--bg-nav) !important;
+    backdrop-filter: blur(12px);
+    border-bottom: 1px solid var(--border-color);
+    transition: all 0.3s ease;
+}
+
+.hero-section {
+    background: var(--hero-bg);
+    padding: 80px 0;
+    text-align: center;
+    border-bottom: 1px solid var(--border-color);
+    transition: background 0.3s ease, border-color 0.3s ease;
+}
+
+.premium-card {
+    background-color: var(--bg-card);
+    border: 1px solid var(--border-color);
+    box-shadow: var(--card-shadow);
+    transition: transform 0.3s ease, box-shadow 0.3s ease, background-color 0.3s ease, border-color 0.3s ease;
+}
+
+.premium-card:hover {
+    transform: translateY(-8px);
+    box-shadow: var(--hover-shadow);
+    border-color: #3b82f6;
+}
+
+.premium-img-wrapper {
+    background-color: #ffffff;
+    border-bottom: 1px solid var(--border-color);
+    padding: 2rem;
+    opacity: var(--img-opacity);
+    transition: opacity 0.3s ease, border-color 0.3s ease;
+}
+
+.premium-card:hover .premium-img-wrapper {
+    opacity: 1;
+}
+
+.premium-text {
+    color: var(--text-main) !important;
+    transition: color 0.3s ease;
+}
+
+.premium-muted {
+    color: var(--text-muted) !important;
+    transition: color 0.3s ease;
+}
+
+.btn-premium-add {
+    background-color: var(--btn-add-bg);
+    color: var(--btn-add-text);
+    transition: all 0.2s ease;
+    border: none;
+}
+
+.btn-premium-add:hover {
+    transform: scale(1.03);
+    opacity: 0.9;
+    color: var(--btn-add-text);
+}
+
+#darkModeToggle {
+    cursor: pointer;
+    width: 40px;
+    height: 40px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 50%;
+    background: transparent;
+    border: 1px solid var(--border-color);
+    transition: all 0.2s ease;
+    color: var(--text-main);
+}
+
+#darkModeToggle:hover {
+    background: var(--border-color);
+}
+
+/* === FORMULARIOS Y MODALES PREMIUM === */
+.premium-modal {
+    background-color: var(--bg-card) !important;
+    border: 1px solid var(--border-color);
+    box-shadow: var(--hover-shadow);
+}
+
+.premium-input {
+    background-color: var(--input-bg) !important;
+    border: 1px solid var(--input-border) !important;
+    color: var(--text-main) !important;
+    transition: all 0.3s ease;
+}
+
+.premium-input:focus {
+    background-color: var(--bg-body) !important;
+    border-color: var(--input-focus) !important;
+    box-shadow: 0 0 0 0.25rem rgba(59, 130, 246, 0.25) !important;
+    color: var(--text-main) !important;
+}
+
+[data-bs-theme="dark"] {
+    --bg-body: #111827;
+    /* Gris antracita elegante de fondo */
+    --bg-card: #1f2937;
+    /* Tarjetas un tono más claras para dar profundidad */
+    --bg-nav: #111827;
+    /* Barra superior integrada */
+    --text-main: #f9fafb;
+    /* Blanco roto para no cansar la vista */
+    --text-muted: #9ca3af;
+    --border-color: #374151;
+    /* Bordes muy sutiles */
+    --hero-bg: radial-gradient(circle at 50% 0%, #1f2937 0%, #111827 100%);
+    --card-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.4);
+    --hover-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.7);
+    --btn-add-bg: #3b82f6;
+    /* El botón de añadir en azul eléctrico destaca genial aquí */
+    --btn-add-text: #ffffff;
+    --img-opacity: 0.9;
+
+    /* Inputs Premium para el Modal y formularios */
+    --input-bg: #1f2937;
+    --input-border: #4b5563;
+    --input-focus: #3b82f6;
+}
