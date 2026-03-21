@@ -146,16 +146,33 @@ $resultado = $conn->query($sql);
                         <i class="bi bi-person-circle text-primary"></i>
                         <?php echo $_SESSION['nombre']; ?>
                     </a>
+                
                     <?php if ($_SESSION['rol'] === 'admin'): ?>
-                        <a href="admin_pedidos.php" class="btn btn-primary btn-sm rounded-pill"><i class="bi bi-graph-up"></i>
-                            Panel</a>
+                        <div class="dropdown d-inline-block">
+                            <button class="btn btn-primary btn-sm rounded-pill dropdown-toggle px-3" type="button" data-bs-toggle="dropdown">
+                                <i class="bi bi-gear-fill me-1"></i> Gestión
+                            </button>
+                            <ul class="dropdown-menu dropdown-menu-end premium-card border-0 shadow-lg mt-2">
+                                <li><a class="dropdown-item premium-text" href="admin_pedidos.php"><i
+                                            class="bi bi-cart-check me-2"></i>Pedidos</a></li>
+                                <li><a class="dropdown-item premium-text" href="admin_usuarios.php"><i
+                                            class="bi bi-people me-2"></i>Clientes</a></li>
+                                <li><a class="dropdown-item premium-text" href="admin_estadisticas.php"><i
+                                            class="bi bi-bar-chart me-2"></i>Estadísticas</a></li>
+                                <li><a class="dropdown-item premium-text" href="admin_mailing.php"><i class="bi bi-envelope-at me-2"></i>Enviar
+                                        Email</a></li>
+                                <li>
+                                    <hr class="dropdown-divider" style="border-color: var(--border-color);">
+                                </li>
+                                <li><a class="dropdown-item premium-text" href="add_product.php"><i class="bi bi-plus-circle me-2"></i>Añadir
+                                        Producto</a></li>
+                            </ul>
+                        </div>
                     <?php endif; ?>
-                    <a href="logout.php" class="btn btn-danger btn-sm border-0 rounded-pill"><i
-                            class="bi bi-box-arrow-right"></i></a>
+                
+                    <a href="logout.php" class="btn btn-danger btn-sm border-0 rounded-pill ms-2"><i class="bi bi-box-arrow-right"></i></a>
                 <?php else: ?>
-                    <a href="#" class="btn btn-outline-secondary btn-sm rounded-pill px-3" data-bs-toggle="modal"
-                        data-bs-target="#loginModal">Login</a>
-                    <a href="registro.php" class="btn btn-primary btn-sm rounded-pill px-4 shadow-sm">Crear Cuenta</a>
+                    ...
                 <?php endif; ?>
             </div>
         </div>
