@@ -1,69 +1,72 @@
 <?php
-// ==============================================================================
-// Script de Ingesta de Datos (API REST) 
-// Descripción: Descarga catálogo, procesa JSON, guarda imágenes y actualiza BBDD.
-// ==============================================================================
+require_once 'includes/db.php';
+// Incluimos la función de log (Mejora 3) que definiremos más abajo
+require_once 'includes/logger.php';
 
-require __DIR__ . '/includes/db.php';
+// Mejora 1: Asumimos que la URL viene de una constante o configuración
+$api_url = defined('API_URL') ? API_URL : "https://fakestoreapi.com/products";
+$json_data = file_get_contents($api_url);
+$items = json_decode($json_data, true);
 
-echo "[".date("Y-m-d H:i:s")."] Iniciando sincronización con el proveedor externo...\n";
-
-// 1. Conexión al Endpoint de la API
-$api_url = "https://fakestoreapi.com/products";
-$json_data = @file_get_contents($api_url);
-
-if ($json_data === FALSE) {
-    die("Error: No se pudo establecer conexión con la API externa.\n");
+if (!$items) {
+    logSync("Error: No se pudo conectar a la API o el JSON es inválido.");
+    exit("Error conectando a la API.");
 }
 
-// 2. Decodificar el JSON a un array de PHP
-$productos = json_decode($json_data, true);
+// Preparar las sentencias una sola vez fuera del bucle (Optimización de rendimiento)
+$stmt_check = $conn->prepare("SELECT id FROM productos WHERE api_id = ?");
+$stmt_update = $conn->prepare("UPDATE productos SET nombre = ?, descripcion = ?, precio = ?, stock = ?, imagen = ? WHERE api_id = ?");
+$stmt_insert = $conn->prepare("INSERT INTO productos (api_id, nombre, descripcion, precio, stock, imagen) VALUES (?, ?, ?, ?, ?, ?)");
+
 $nuevos = 0;
 $actualizados = 0;
 
-foreach ($productos as $item) {
-    // Saneamiento de datos para evitar Inyección SQL
-    $nombre = $conn->real_escape_string($item['title']);
-    // Acortamos la descripción para que las tarjetas de la web no se deformen
-    $descripcion = $conn->real_escape_string(substr($item['description'], 0, 200) . "..."); 
-    $precio = (float)$item['price'];
-    $imagen_url = $item['image'];
-    
-    // Simulamos un stock aleatorio ya que esta API no gestiona inventario
-    $stock_simulado = rand(5, 50);
+foreach ($items as $item) {
+    $api_id = (int) $item['id'];
+    $nombre = $item['title'];
+    $precio = (float) $item['price'];
+    $stock_simulado = rand(10, 50); // Simulación de stock
 
-    // 3. Gestión de Activos (Descarga de imágenes)
-    $imagen_nombre = "api_" . $item['id'] . ".jpg";
-    $ruta_imagen = __DIR__ . "/img/" . $imagen_nombre;
-    
-    // Si no tenemos la foto descargada, la traemos del proveedor
-    if (!file_exists($ruta_imagen)) {
-        $img_content = @file_get_contents($imagen_url);
-        if ($img_content) {
-            file_put_contents($ruta_imagen, $img_content);
-        } else {
-            $imagen_nombre = "default.jpg"; // Fallback por si falla la descarga
+    // Error 4: Truncado condicional seguro para caracteres multibyte (acentos, eñes)
+    $descripcion_raw = $item['description'];
+    $descripcion = (mb_strlen($descripcion_raw) > 200) ? mb_substr($descripcion_raw, 0, 200) . "..." : $descripcion_raw;
+
+    // Advertencia 3: Validación real de imagen
+    $imagen_url = $item['image'];
+    $imagen_nombre = 'default.jpg';
+    $img_content = @file_get_contents($imagen_url);
+
+    if ($img_content !== false) {
+        $img_info = @getimagesizefromstring($img_content);
+        // Verificamos que sea realmente una imagen
+        if ($img_info !== false && in_array($img_info['mime'], ['image/jpeg', 'image/png', 'image/webp'])) {
+            $imagen_nombre = 'prod_' . $api_id . '.jpg';
+            file_put_contents('assets/img/productos/' . $imagen_nombre, $img_content);
         }
     }
 
-    // 4. Lógica de Inserción/Actualización (Upsert)
-    $sql_check = "SELECT id FROM productos WHERE nombre = '$nombre'";
-    $check = $conn->query($sql_check);
-    
-    if ($check && $check->num_rows > 0) {
-        // Si el producto ya existe, solo actualizamos precio y stock (Mantenimiento)
-        $conn->query("UPDATE productos SET precio = $precio, stock = $stock_simulado, imagen = '$imagen_nombre' WHERE nombre = '$nombre'");
+    // Advertencia 1 & Error 1: Upsert basado en api_id con Prepared Statements
+    $stmt_check->bind_param("i", $api_id);
+    $stmt_check->execute();
+    $stmt_check->store_result();
+
+    if ($stmt_check->num_rows > 0) {
+        // Existe, actualizamos
+        $stmt_update->bind_param("ssdisi", $nombre, $descripcion, $precio, $stock_simulado, $imagen_nombre, $api_id);
+        $stmt_update->execute();
         $actualizados++;
     } else {
-        // Si es nuevo, lo insertamos en el catálogo
-        $sql_insert = "INSERT INTO productos (nombre, descripcion, precio, stock, imagen) 
-                       VALUES ('$nombre', '$descripcion', $precio, $stock_simulado, '$imagen_nombre')";
-        $conn->query($sql_insert);
+        // No existe, insertamos
+        $stmt_insert->bind_param("issdis", $api_id, $nombre, $descripcion, $precio, $stock_simulado, $imagen_nombre);
+        $stmt_insert->execute();
         $nuevos++;
     }
 }
 
-echo "[".date("Y-m-d H:i:s")."] Sincronización completada con éxito.\n";
-echo " -> Productos nuevos añadidos: $nuevos\n";
-echo " -> Productos actualizados: $actualizados\n";
+$stmt_check->close();
+$stmt_update->close();
+$stmt_insert->close();
+
+logSync("Sincronización completada. Nuevos: $nuevos. Actualizados: $actualizados.");
+echo "Sincronización completada con éxito.";
 ?>
