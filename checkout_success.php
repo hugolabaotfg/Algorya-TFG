@@ -2,12 +2,18 @@
 // =============================================================================
 // ALGORYA - checkout_success.php
 // Stripe redirige aquí cuando el pago ha sido APROBADO.
+//
+// Estructura real de la tabla pedidos:
+//   id | usuario_id | total | metodo_pago | fecha | stripe_session_id
+//
+// REGLA i18n: en bloque PHP usar t('clave') directamente.
+// En HTML usar la sintaxis de echo corto. Email en texto fijo sin traducir.
 // =============================================================================
 
 session_start();
-require 'includes/lang.php';
 require 'includes/db.php';
 require 'includes/config.php';
+require 'includes/lang.php';
 
 // Solo usuarios logueados
 if (!isset($_SESSION['user_id'])) {
@@ -19,7 +25,8 @@ $uid = (int) $_SESSION['user_id'];
 $nombre_cliente = htmlspecialchars($_SESSION['nombre']);
 
 // ─────────────────────────────────────────────────────────────────────────────
-// PASO 1: Validar el session_id que Stripe manda en la URL
+// PASO 1: Validar el session_id de Stripe contra el guardado en $_SESSION
+// Si no coinciden -> posible acceso directo fraudulento -> redirigir
 // ─────────────────────────────────────────────────────────────────────────────
 $session_id_url = $_GET['session_id'] ?? '';
 $session_id_sesion = $_SESSION['stripe_session_id'] ?? '';
@@ -29,18 +36,18 @@ if (empty($session_id_url) || $session_id_url !== $session_id_sesion) {
     exit();
 }
 
-// Limpiamos la variable de sesión para evitar recargas fraudulentas
+// Eliminar el session_id de sesión para prevenir pedidos duplicados por recarga
 unset($_SESSION['stripe_session_id']);
 
 // ─────────────────────────────────────────────────────────────────────────────
-// PASO 2: Verificar con la API de Stripe que el pago está realmente "paid"
+// PASO 2: Verificar con Stripe que el pago está realmente en estado "paid"
 // ─────────────────────────────────────────────────────────────────────────────
 $ch = curl_init('https://api.stripe.com/v1/checkout/sessions/' . urlencode($session_id_url));
 curl_setopt_array($ch, [
     CURLOPT_RETURNTRANSFER => true,
     CURLOPT_HTTPGET => true,
     CURLOPT_USERPWD => STRIPE_SECRET_KEY . ':',
-    CURLOPT_SSL_VERIFYPEER => false, // false en entorno local con cert. autofirmado
+    CURLOPT_SSL_VERIFYPEER => false, // false en entorno local con certificado autofirmado
 ]);
 $response = curl_exec($ch);
 $http_code = curl_getinfo($ch, CURLINFO_HTTP_CODE);
@@ -48,7 +55,8 @@ $curl_err = curl_error($ch);
 curl_close($ch);
 
 if ($curl_err) {
-    die("❌ Error de conexión con Stripe: " . htmlspecialchars($curl_err) . "<br><a href='checkout.php'>Volver al resumen</a>");
+    die("Error de conexión con Stripe: " . htmlspecialchars($curl_err) .
+        "<br><a href='checkout.php'>Volver al resumen</a>");
 }
 
 $stripe_session = json_decode($response, true);
@@ -72,6 +80,7 @@ $stmt_cart->execute();
 $res_cart = $stmt_cart->get_result();
 $stmt_cart->close();
 
+// Si el carrito ya está vacío es una recarga -> no crear pedido duplicado
 if ($res_cart->num_rows === 0) {
     header("Location: index.php");
     exit();
@@ -85,13 +94,14 @@ while ($row = $res_cart->fetch_assoc()) {
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
-// PASO 4: Transacción ACID — crear pedido + líneas + vaciar carrito
+// PASO 4: Transacción ACID — crear pedido + líneas de pedido + vaciar carrito
 // ─────────────────────────────────────────────────────────────────────────────
 $conn->begin_transaction();
 $pedido_id = null;
 
 try {
     $metodo = 'Stripe (Sandbox)';
+
     $stmt_pedido = $conn->prepare(
         "INSERT INTO pedidos (usuario_id, total, metodo_pago, stripe_session_id)
          VALUES (?, ?, ?, ?)"
@@ -106,13 +116,7 @@ try {
          VALUES (?, ?, ?, ?)"
     );
     foreach ($items_pedido as $item) {
-        $stmt_linea->bind_param(
-            "iiid",
-            $pedido_id,
-            $item['producto_id'],
-            $item['cantidad'],
-            $item['precio']
-        );
+        $stmt_linea->bind_param("iiid", $pedido_id, $item['producto_id'], $item['cantidad'], $item['precio']);
         $stmt_linea->execute();
     }
     $stmt_linea->close();
@@ -126,13 +130,17 @@ try {
 
 } catch (Exception $e) {
     $conn->rollback();
-    // SOLUCIÓN AL ERROR CRÍTICO DE SINTAXIS (Funciones t() limpias)
-    die(t('🚨 Error crítico al registrar el pedido: ') . htmlspecialchars($e->getMessage()) .
-        "<br>" . t('Tu pago fue procesado por Stripe (ID: ') . $session_id_url . t('). Contacta con soporte.'));
+    // Error critico -> deshacer TODO para no dejar datos inconsistentes
+    die("Error crítico al registrar el pedido: " . htmlspecialchars($e->getMessage()) .
+        "<br>Tu pago fue procesado por Stripe (ID: " . htmlspecialchars($session_id_url) . "). Contacta con soporte.");
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
-// PASO 5: Enviar recibo por email al cliente
+// PASO 5: Enviar recibo por email
+// NOTA: el email se escribe en texto fijo (no usa t()) porque:
+//   1. Se envía al servidor de correo, no se muestra en pantalla
+//   2. El cliente puede tener cualquier idioma configurado pero queremos
+//      que el recibo siempre sea legible -> usamos español
 // ─────────────────────────────────────────────────────────────────────────────
 $stmt_email = $conn->prepare("SELECT email FROM usuarios WHERE id = ?");
 $stmt_email->bind_param("i", $uid);
@@ -143,20 +151,20 @@ $stmt_email->close();
 if ($res_email && $row_email = $res_email->fetch_assoc()) {
     $email_cliente = $row_email['email'];
 
-    // SOLUCIÓN A LOS ERRORES DE SINTAXIS EN EL EMAIL
-    $asunto = "[Algorya] ✅ " . t('Confirmación de tu Pedido') . " #$pedido_id";
+    // Asunto y cuerpo del email en texto plano, sin traduccion, puro PHP
+    $asunto = "[Algorya] Confirmacion de tu Pedido #" . $pedido_id;
 
-    $cuerpo = t("Hola $nombre_cliente,\n\n");
-    $cuerpo .= t("¡Gracias por tu compra en Algorya! Tu pago ha sido procesado correctamente por Stripe.\n\n");
-    $cuerpo .= "📦 " . t('Resumen del pedido') . " #$pedido_id:\n";
+    $cuerpo = "Hola " . $nombre_cliente . ",\n\n";
+    $cuerpo .= "Gracias por tu compra en Algorya. Tu pago ha sido procesado correctamente por Stripe.\n\n";
+    $cuerpo .= "Resumen del pedido #" . $pedido_id . ":\n";
     foreach ($items_pedido as $item) {
         $subtotal = number_format($item['precio'] * $item['cantidad'], 2);
-        $cuerpo .= "  - {$item['nombre']} x{$item['cantidad']} → {$subtotal} €\n";
+        $cuerpo .= "  - " . $item['nombre'] . " x" . $item['cantidad'] . " -> " . $subtotal . " EUR\n";
     }
-    $cuerpo .= "\n" . t('Total pagado:') . " " . number_format($total_pedido, 2) . " EUR\n";
-    $cuerpo .= t("Método: Stripe (Sandbox)\n\n");
-    $cuerpo .= t('En breve comenzaremos a preparar tu envío.') . "\n\n";
-    $cuerpo .= t("Atentamente,\nEl equipo de Algorya\nhola@algorya.store");
+    $cuerpo .= "\nTotal pagado: " . number_format($total_pedido, 2) . " EUR\n";
+    $cuerpo .= "Metodo: Stripe (Sandbox)\n\n";
+    $cuerpo .= "En breve comenzaremos a preparar tu envio.\n\n";
+    $cuerpo .= "Atentamente,\nEl equipo de Algorya\nhola@algorya.store";
 
     $cabeceras = "From: hola@algorya.store\r\n" .
         "Reply-To: hola@algorya.store\r\n" .
@@ -164,20 +172,23 @@ if ($res_email && $row_email = $res_email->fetch_assoc()) {
 
     @mail($email_cliente, $asunto, $cuerpo, $cabeceras);
 }
+// =============================================================================
+// A partir de aquí empieza el HTML.
+// A partir de aqui empieza el HTML. Textos visibles traducidos con t('clave')
+// =============================================================================
 ?>
 <!DOCTYPE html>
-<html lang="<?= defined('LANG') ? LANG : 'es' ?>" data-bs-theme="light">
+<html lang="<?= LANG ?>" data-bs-theme="light">
 
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>
-        <?= t('¡Pago completado!') ?> | Algorya
+        <?= t('success_titulo') ?> | Algorya
     </title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css">
     <link rel="stylesheet" href="estilos.css">
-    <script src="tema.js"></script>
 </head>
 
 <body class="d-flex align-items-center justify-content-center" style="min-height: 100vh;">
@@ -187,6 +198,7 @@ if ($res_email && $row_email = $res_email->fetch_assoc()) {
             <div class="col-md-6 col-lg-5">
                 <div class="card premium-card border-0 rounded-4 shadow-sm text-center p-5">
 
+                    <!-- Icono de éxito -->
                     <div class="mb-4">
                         <div class="rounded-circle d-inline-flex align-items-center justify-content-center"
                             style="width:90px; height:90px; background: rgba(34,197,94,0.15);">
@@ -195,28 +207,26 @@ if ($res_email && $row_email = $res_email->fetch_assoc()) {
                     </div>
 
                     <h2 class="fw-bold premium-text mb-2">
-                        <?= t('¡Pago completado!') ?>
+                        <?= t('success_titulo') ?>
                     </h2>
                     <p class="premium-muted mb-4">
-                        <?= t('Tu pedido') ?> <strong class="text-primary">#
-                            <?php echo $pedido_id; ?>
-                        </strong>
-                        <?= t('ha sido registrado correctamente.') ?>
+                        <?= t('success_subtitulo', ['#' . $pedido_id]) ?>
                     </p>
 
                     <hr style="border-color: var(--border-color);">
 
+                    <!-- Desglose de productos -->
                     <div class="text-start my-3">
                         <?php foreach ($items_pedido as $item): ?>
                             <div class="d-flex justify-content-between small premium-text py-1">
                                 <span>
-                                    <?php echo htmlspecialchars($item['nombre']); ?>
+                                    <?= htmlspecialchars($item['nombre']) ?>
                                     <span class="premium-muted">×
-                                        <?php echo (int) $item['cantidad']; ?>
+                                        <?= (int) $item['cantidad'] ?>
                                     </span>
                                 </span>
                                 <span class="fw-semibold">
-                                    <?php echo number_format($item['precio'] * $item['cantidad'], 2); ?> €
+                                    <?= number_format($item['precio'] * $item['cantidad'], 2) ?> €
                                 </span>
                             </div>
                         <?php endforeach; ?>
@@ -224,39 +234,37 @@ if ($res_email && $row_email = $res_email->fetch_assoc()) {
 
                     <hr style="border-color: var(--border-color);">
 
+                    <!-- Total pagado -->
                     <div class="d-flex justify-content-between align-items-center my-3">
                         <span class="fw-bold premium-text">
-                            <?= t('Total pagado:') ?>
+                            <?= t('success_total') ?>
                         </span>
                         <span class="fw-black text-primary fs-5">
-                            <?php echo number_format($total_pedido, 2); ?> €
+                            <?= number_format($total_pedido, 2) ?> €
                         </span>
                     </div>
 
-                    <div class="premium-muted" style="font-size: 0.7rem;">
-                        <?= t('ID de sesión Stripe:') ?>
-                        <code><?php echo htmlspecialchars(substr($session_id_url, 0, 30)); ?>...</code>
+                    <!-- ID de sesión Stripe (trazabilidad) -->
+                    <div class="premium-muted mb-3" style="font-size: 0.7rem;">
+                        ID Stripe: <code><?= htmlspecialchars(substr($session_id_url, 0, 30)) ?>...</code>
                     </div>
 
-                    <div class="alert border-0 rounded-3 small text-start my-4"
+                    <!-- Aviso Sandbox -->
+                    <div class="alert border-0 rounded-3 small text-start mb-4"
                         style="background: rgba(59,130,246,0.1); color: var(--text-main);">
                         <i class="bi bi-info-circle-fill text-primary me-2"></i>
-                        <strong>
-                            <?= t('Modo Sandbox:') ?>
-                        </strong>
-                        <?= t('Pago simulado con Stripe Test.') ?>
-                        <?= t('No se han realizado cargos reales.') ?>
-                        <?= t('Te hemos enviado un recibo a tu correo.') ?>
+                        <?= t('success_sandbox') ?>
                     </div>
 
+                    <!-- Botones de acción -->
                     <a href="index.php" class="btn btn-primary btn-lg rounded-pill w-100 fw-bold mb-2"
                         style="background: linear-gradient(135deg, #3b82f6, #6366f1); border: none;">
                         <i class="bi bi-bag me-2"></i>
-                        <?= t('Seguir comprando') ?>
+                        <?= t('success_btn_seguir') ?>
                     </a>
                     <a href="perfil.php" class="btn btn-outline-secondary rounded-pill w-100 fw-semibold">
                         <i class="bi bi-person me-2"></i>
-                        <?= t('Ver mis pedidos') ?>
+                        <?= t('success_btn_pedidos') ?>
                     </a>
 
                 </div>
@@ -265,6 +273,7 @@ if ($res_email && $row_email = $res_email->fetch_assoc()) {
     </div>
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="tema.js"></script>
 </body>
 
 </html>
