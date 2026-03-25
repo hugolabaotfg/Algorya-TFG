@@ -19,7 +19,18 @@ if (!$respuesta_json) {
 
 // 2. TRADUCCIÓN DEL IDIOMA JSON A ARRAY PHP
 $productos_externos = json_decode($respuesta_json, true);
+// ELIMINAMOS TODOS LOS PRODUCTOS ANTIGUOS
+$conn->query("TRUNCATE TABLE productos");
 
+// (Opcional nivel Dios de ASIR: borrar también las imágenes de la carpeta img/ para que el servidor no explote de memoria tras unos meses)
+$files = glob('img/prod_*'); // busca todas las fotos descargadas
+foreach ($files as $file) {
+    if (is_file($file)) {
+        unlink($file); // las borra físicamente
+    }
+}
+
+// A PARTIR DE AQUÍ COMIENZAS A INSERTAR LOS NUEVOS...
 // 3. BUCLE MÁGICO: Procesar uno a uno
 foreach ($productos_externos as $prod) {
     // Extraemos los datos del proveedor

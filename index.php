@@ -2,8 +2,11 @@
 session_start();
 require 'includes/db.php';
 
-// Carrito de compras: Añadir producto al carrito (Lógica Backend AJAX)
+// Carrito de compras: Añadir producto al carrito (Soporta múltiples cantidades)
 if (isset($_POST['add_to_cart'])) {
+    $cantidad_pedida = isset($_POST['cantidad']) ? (int)$_POST['cantidad'] : 1;
+    if ($cantidad_pedida < 1) $cantidad_pedida = 1;
+
     if (isset($_SESSION['user_id'])) {
         $usuario_id = $_SESSION['user_id'];
         $producto_id = (int) $_POST['id'];
@@ -11,29 +14,25 @@ if (isset($_POST['add_to_cart'])) {
         $res = $conn->query($sql_check);
         if ($res && $res->num_rows > 0) {
             $row = $res->fetch_assoc();
-            $nueva_cantidad = $row['cantidad'] + 1;
+            $nueva_cantidad = $row['cantidad'] + $cantidad_pedida;
             $conn->query("UPDATE carritos SET cantidad = $nueva_cantidad, fecha_agregado = CURRENT_TIMESTAMP WHERE id = " . $row['id']);
         } else {
-            $conn->query("INSERT INTO carritos (usuario_id, producto_id, cantidad) VALUES ($usuario_id, $producto_id, 1)");
+            $conn->query("INSERT INTO carritos (usuario_id, producto_id, cantidad) VALUES ($usuario_id, $producto_id, $cantidad_pedida)");
         }
     } else {
-        if (!isset($_SESSION['carrito']))
-            $_SESSION['carrito'] = [];
+        if (!isset($_SESSION['carrito'])) $_SESSION['carrito'] = [];
         $encontrado = false;
         foreach ($_SESSION['carrito'] as &$item) {
             if ($item['id'] == $_POST['id']) {
-                $item['cantidad']++;
+                $item['cantidad'] += $cantidad_pedida;
                 $encontrado = true;
                 break;
             }
         }
         if (!$encontrado) {
             $_SESSION['carrito'][] = [
-                'id' => $_POST['id'],
-                'nombre' => $_POST['nombre'],
-                'precio' => $_POST['precio'],
-                'imagen' => $_POST['imagen'],
-                'cantidad' => 1
+                'id' => $_POST['id'], 'nombre' => $_POST['nombre'],
+                'precio' => $_POST['precio'], 'imagen' => $_POST['imagen'], 'cantidad' => $cantidad_pedida
             ];
         }
     }
@@ -42,12 +41,10 @@ if (isset($_POST['add_to_cart'])) {
     if (isset($_SESSION['user_id'])) {
         $uid = $_SESSION['user_id'];
         $res = $conn->query("SELECT SUM(cantidad) as total FROM carritos WHERE usuario_id = $uid");
-        if ($res && $row = $res->fetch_assoc())
-            $contador_carrito = $row['total'] ? $row['total'] : 0;
+        if ($res && $row = $res->fetch_assoc()) $contador_carrito = $row['total'] ? $row['total'] : 0;
     } else {
         if (isset($_SESSION['carrito'])) {
-            foreach ($_SESSION['carrito'] as $item)
-                $contador_carrito += $item['cantidad'];
+            foreach ($_SESSION['carrito'] as $item) $contador_carrito += $item['cantidad'];
         }
     }
 
@@ -71,28 +68,19 @@ if (isset($_SESSION['user_id'])) {
     }
 } else {
     if (isset($_SESSION['carrito'])) {
-        foreach ($_SESSION['carrito'] as $item)
-            $contador_carrito += $item['cantidad'];
+        foreach ($_SESSION['carrito'] as $item) $contador_carrito += $item['cantidad'];
     }
 }
 
-// ==========================================
-// SISTEMA DE PAGINACIÓN PROFESIONAL
-// ==========================================
-$productos_por_pagina = 12; // 3 filas de 4 tarjetas
-$pagina_actual = isset($_GET['pagina']) ? (int) $_GET['pagina'] : 1;
-if ($pagina_actual < 1)
-    $pagina_actual = 1;
-
+// SISTEMA DE PAGINACIÓN PHP (Sin cambios)
+$productos_por_pagina = 12;
+$pagina_actual = isset($_GET['pagina']) ? (int)$_GET['pagina'] : 1;
+if ($pagina_actual < 1) $pagina_actual = 1;
 $offset = ($pagina_actual - 1) * $productos_por_pagina;
-
-// Contar el total de productos para saber cuántas páginas hay
 $sql_total = "SELECT COUNT(*) as total FROM productos";
 $res_total = $conn->query($sql_total);
 $total_productos = $res_total->fetch_assoc()['total'];
 $total_paginas = ceil($total_productos / $productos_por_pagina);
-
-// Obtener solo los productos de la página actual
 $sql = "SELECT * FROM productos ORDER BY id DESC LIMIT $productos_por_pagina OFFSET $offset";
 $resultado = $conn->query($sql);
 ?>
