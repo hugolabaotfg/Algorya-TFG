@@ -1,26 +1,22 @@
 <?php
-// =============================================================================
-// ALGORYA - checkout_cancel.php
-// Stripe redirige aquí si el usuario pulsa "Volver" o cierra la ventana de pago.
-// NO borramos el carrito — el usuario puede intentarlo de nuevo.
-// =============================================================================
-
 session_start();
 require 'includes/lang.php';
 ?>
 <!DOCTYPE html>
 <html lang="<?= LANG ?>" data-bs-theme="light">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title><?= t('Pago cancelado') ?> | Algorya</title>
+    <title>
+        <?= t('cancel_titulo') ?> | Algorya
+    </title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css">
     <link rel="stylesheet" href="estilos.css">
-    <script src="tema.js"></script>
 </head>
 
-<body class="d-flex align-items-center justify-content-center" style="min-height: 100vh;">
+<body class="d-flex align-items-center justify-content-center" style="min-height:100vh;">
 
     <div class="container">
         <div class="row justify-content-center">
@@ -34,19 +30,21 @@ require 'includes/lang.php';
                         </div>
                     </div>
 
-                    <h2 class="fw-bold premium-text mb-2"><?= t('Pago cancelado') ?></h2>
+                    <h2 class="fw-bold premium-text mb-2">
+                        <?= t('cancel_titulo') ?>
+                    </h2>
                     <p class="premium-muted mb-4">
-                       <?= t('No te preocupes, no se ha realizado ningún cargo') ?>.<br>
-                       <?= t('Tus productos siguen en el carrito esperándote.') ?>
+                        <?= t('cancel_texto') ?>
                     </p>
 
                     <a href="carrito.php" class="btn btn-primary btn-lg rounded-pill w-100 fw-bold mb-2"
-                        style="background: linear-gradient(135deg,#3b82f6,#6366f1); border:none;">
-                        <i class="bi bi-cart3 me-2"></i><?= t('Volver al carrito') ?>
+                        style="background:linear-gradient(135deg,#3b82f6,#6366f1);border:none;">
+                        <i class="bi bi-cart3 me-2"></i>
+                        <?= t('cancel_btn_carrito') ?>
                     </a>
-
                     <a href="index.php" class="btn btn-outline-secondary rounded-pill w-100 fw-semibold">
-                        <i class="bi bi-bag me-2"></i><?= t('Seguir comprando') ?>
+                        <i class="bi bi-bag me-2"></i>
+                        <?= t('cancel_btn_seguir') ?>
                     </a>
 
                 </div>
@@ -55,6 +53,7 @@ require 'includes/lang.php';
     </div>
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="tema.js"></script>
 </body>
 
 </html>
