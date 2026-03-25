@@ -9,6 +9,7 @@
 // =============================================================================
 
 session_start();
+require 'includes/lang.php';
 require 'includes/db.php';
 
 // Si ya tiene sesión iniciada, lo mandamos donde corresponde
@@ -47,7 +48,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['login'])) {
 
             // Comprobar si la cuenta está verificada por email
             if ($usuario['verificado'] == 0) {
-                $error = "Debes verificar tu correo electrónico antes de iniciar sesión.";
+                $error = t("Debes verificar tu correo electrónico antes de iniciar sesión.");
             } else {
                 // ¡Todo correcto! Iniciamos sesión
                 $_SESSION['user_id'] = $usuario['id'];
@@ -66,11 +67,11 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['login'])) {
             }
 
         } else {
-            $error = "Contraseña incorrecta. Inténtalo de nuevo.";
+            $error = t("Contraseña incorrecta. Inténtalo de nuevo.");
         }
 
     } else {
-        $error = "No existe ninguna cuenta asociada a este correo electrónico.";
+        $error = t("No existe ninguna cuenta asociada a este correo electrónico.");
     }
 
     $stmt->close();
@@ -86,12 +87,11 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['login'])) {
 }
 ?>
 <!DOCTYPE html>
-<html lang="es" data-bs-theme="light">
-
+<html lang="<?= LANG ?>" data-bs-theme="light">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Iniciar Sesión | Algorya</title>
+    <title><?= t('Iniciar Sesión') ?> | Algorya</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css">
     <link rel="stylesheet" href="estilos.css">
@@ -108,8 +108,8 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['login'])) {
 
                         <div class="text-center mb-4">
                             <i class="bi bi-shield-lock-fill fs-1 text-primary"></i>
-                            <h2 class="fw-bold mt-2 premium-text">Acceso al Sistema</h2>
-                            <p class="premium-muted">Introduce tus credenciales para continuar</p>
+                            <h2 class="fw-bold mt-2 premium-text"><?= t('Acceso al Sistema') ?></h2>
+                            <p class="premium-muted"><?= t('Introduce tus credenciales para continuar') ?></p>
                         </div>
 
                         <?php if ($error != ''): ?>
@@ -123,13 +123,13 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['login'])) {
                         <form action="login.php" method="POST">
 
                             <div class="mb-3">
-                                <label for="email" class="form-label fw-bold premium-text">Correo Electrónico</label>
+                                <label for="email" class="form-label fw-bold premium-text"><?= t('Correo Electrónico') ?></label>
                                 <input type="email" class="form-control premium-input shadow-none py-2" id="email"
                                     name="email" placeholder="tu@correo.com" required autofocus>
                             </div>
 
                             <div class="mb-4">
-                                <label for="password" class="form-label fw-bold premium-text">Contraseña</label>
+                                <label for="password" class="form-label fw-bold premium-text"><?= t('Contraseña') ?></label>
                                 <div class="input-group">
                                     <input type="password" class="form-control premium-input shadow-none py-2"
                                         id="password" name="password" placeholder="••••••••" required>
@@ -143,17 +143,17 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['login'])) {
                             <button type="submit" name="login"
                                 class="btn btn-primary w-100 py-2 fw-bold rounded-pill shadow-sm"
                                 style="background-color: #3b82f6; border: none;">
-                                <i class="bi bi-box-arrow-in-right me-2"></i>Entrar
+                                <i class="bi bi-box-arrow-in-right me-2"></i><?= t('Entrar') ?>
                             </button>
                         </form>
 
                         <div class="text-center mt-4">
                             <a href="registro.php" class="text-primary text-decoration-none fw-bold">
-                                ¿No tienes cuenta? Regístrate gratis
+                                <?= t('¿No tienes cuenta? Regístrate gratis') ?>
                             </a>
                             <br>
                             <a href="index.php" class="text-decoration-none premium-muted small mt-2 d-inline-block">
-                                <i class="bi bi-arrow-left"></i> Volver al catálogo
+                                <i class="bi bi-arrow-left"></i> <?= t('Volver al catálogo') ?>
                             </a>
                         </div>
 

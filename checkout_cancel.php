@@ -6,14 +6,14 @@
 // =============================================================================
 
 session_start();
+require 'includes/lang.php';
 ?>
 <!DOCTYPE html>
-<html lang="es" data-bs-theme="light">
-
+<html lang="<?= LANG ?>" data-bs-theme="light">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Pago cancelado | Algorya</title>
+    <title><?= t('Pago cancelado') ?> | Algorya</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css">
     <link rel="stylesheet" href="estilos.css">
@@ -34,19 +34,19 @@ session_start();
                         </div>
                     </div>
 
-                    <h2 class="fw-bold premium-text mb-2">Pago cancelado</h2>
+                    <h2 class="fw-bold premium-text mb-2"><?= t('Pago cancelado') ?></h2>
                     <p class="premium-muted mb-4">
-                        No te preocupes, no se ha realizado ningún cargo.<br>
-                        Tus productos siguen en el carrito esperándote.
+                       <?= t('No te preocupes, no se ha realizado ningún cargo') ?>.<br>
+                       <?= t('Tus productos siguen en el carrito esperándote.') ?>
                     </p>
 
                     <a href="carrito.php" class="btn btn-primary btn-lg rounded-pill w-100 fw-bold mb-2"
                         style="background: linear-gradient(135deg,#3b82f6,#6366f1); border:none;">
-                        <i class="bi bi-cart3 me-2"></i>Volver al carrito
+                        <i class="bi bi-cart3 me-2"></i><?= t('Volver al carrito') ?>
                     </a>
 
                     <a href="index.php" class="btn btn-outline-secondary rounded-pill w-100 fw-semibold">
-                        <i class="bi bi-bag me-2"></i>Seguir comprando
+                        <i class="bi bi-bag me-2"></i><?= t('Seguir comprando') ?>
                     </a>
 
                 </div>

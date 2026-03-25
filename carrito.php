@@ -8,6 +8,7 @@
 // =============================================================================
 
 session_start();
+require 'includes/lang.php';
 require 'includes/db.php';
 
 // =============================================================================
@@ -106,12 +107,12 @@ if (isset($_SESSION['user_id'])) {
 
 ?>
 <!DOCTYPE html>
-<html lang="es" data-bs-theme="light">
+<html lang="<?= LANG ?>" data-bs-theme="light">
 
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Tu Carrito | Algorya</title>
+    <title><?= t('Tu Carrito') ?> | Algorya</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css">
     <link rel="stylesheet" href="estilos.css">
@@ -152,7 +153,7 @@ if (isset($_SESSION['user_id'])) {
                     <i class="bi bi-moon-stars-fill fs-6"></i>
                 </div>
                 <a href="index.php" class="btn btn-outline-secondary btn-sm rounded-pill">
-                    <i class="bi bi-arrow-left"></i> Seguir Comprando
+                    <i class="bi bi-arrow-left"></i><?= t('Seguir Comprando') ?>
                 </a>
             </div>
         </div>
@@ -161,7 +162,7 @@ if (isset($_SESSION['user_id'])) {
     <!-- ===== CONTENIDO PRINCIPAL ===== -->
     <div class="container mt-5 flex-grow-1">
         <h2 class="fw-bold premium-text mb-4">
-            <i class="bi bi-cart3 text-primary me-2"></i> Tu Carrito de la Compra
+            <i class="bi bi-cart3 text-primary me-2"></i><?= t('Tu Carrito de la Compra') ?>
         </h2>
 
         <?php if (count($carrito_items) > 0): ?>
@@ -172,9 +173,9 @@ if (isset($_SESSION['user_id'])) {
                     <table class="table table-premium mb-0">
                         <thead>
                             <tr>
-                                <th>Producto</th>
-                                <th class="text-center">Cantidad</th>
-                                <th class="text-end">Precio</th>
+                                <th><?= t('Producto') ?></th>
+                                <th class="text-center"><?= t('Cantidad') ?></th>
+                                <th class="text-end"><?= t('Precio') ?></th>
                                 <th></th>
                             </tr>
                         </thead>
@@ -220,7 +221,7 @@ if (isset($_SESSION['user_id'])) {
                     style="border-color: var(--border-color) !important;">
 
                     <h3 class="fw-bold premium-text m-0 mb-3 mb-md-0">
-                        Total: <span class="text-primary">
+                        <?= t('Total') ?>: <span class="text-primary">
                             <?php echo number_format($total, 2); ?> €
                         </span>
                     </h3>
@@ -230,19 +231,19 @@ if (isset($_SESSION['user_id'])) {
                         <form action="carrito.php" method="POST" class="m-0"
                             onsubmit="return confirm('¿Seguro que quieres vaciar todo el carrito?');">
                             <button type="submit" name="vaciar" class="btn btn-outline-danger rounded-pill px-4">
-                                <i class="bi bi-trash me-1"></i> Vaciar
+                                <i class="bi bi-trash me-1"></i> <?= t('Vaciar') ?>
                             </button>
                         </form>
 
                         <?php if (isset($_SESSION['user_id'])): ?>
                             <!-- Usuario logueado: puede proceder al pago -->
                             <a href="checkout.php" class="btn btn-primary rounded-pill px-4 fw-bold shadow-sm">
-                                Procesar Pago Seguro <i class="bi bi-shield-lock ms-1"></i>
+                                <?= t('Procesar Pago Seguro') ?> <i class="bi bi-shield-lock ms-1"></i>
                             </a>
                         <?php else: ?>
                             <!-- Visitante: le pedimos que inicie sesión antes de pagar -->
                             <a href="login.php" class="btn btn-primary rounded-pill px-4 fw-bold shadow-sm">
-                                <i class="bi bi-person-lock me-1"></i> Inicia sesión para pagar
+                                <i class="bi bi-person-lock me-1"></i> <?= t('Inicia sesión para pagar') ?>
                             </a>
                         <?php endif; ?>
                     </div>
@@ -254,10 +255,10 @@ if (isset($_SESSION['user_id'])) {
             <!-- CARRITO VACÍO -->
             <div class="card premium-card border-0 rounded-4 p-5 text-center shadow-sm">
                 <i class="bi bi-cart-x fs-1 premium-muted mb-3"></i>
-                <h4 class="fw-bold premium-text">Tu carrito está vacío</h4>
-                <p class="premium-muted mb-4">Vuelve al catálogo para descubrir nuestras ofertas exclusivas del día.</p>
+                <h4 class="fw-bold premium-text"><?= t('Tu carrito está vacío') ?></h4>
+                <p class="premium-muted mb-4"><?= t('Vuelve al catálogo para descubrir nuestras ofertas exclusivas del día.') ?></p>
                 <a href="index.php" class="btn btn-primary rounded-pill px-4 mx-auto" style="width: fit-content;">
-                    <i class="bi bi-bag me-1"></i> Ir a la Tienda
+                    <i class="bi bi-bag me-1"></i> <?= t('Ir a la Tienda') ?>
                 </a>
             </div>
 
@@ -269,7 +270,7 @@ if (isset($_SESSION['user_id'])) {
         <div class="container">
             <p class="mb-0 premium-muted small fw-bold">
                 <i class="bi bi-box-seam-fill text-primary"></i> Algorya &copy;
-                <?php echo date("Y"); ?> — Proyecto Final de Grado ASIR
+                <?php echo date("Y"); ?> <?= t('Proyecto Final de Grado ASIR') ?>
             </p>
         </div>
     </footer>

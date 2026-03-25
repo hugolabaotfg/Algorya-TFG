@@ -10,6 +10,7 @@
 // =============================================================================
 
 session_start();
+require 'includes/lang.php';
 require 'includes/db.php';
 
 // Si ya tiene sesión, no tiene sentido registrarse
@@ -31,20 +32,20 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     // --- Validaciones en el backend (aunque el JS ya las hace en el cliente) ---
 
     if (strlen($nombre) < 2 || strlen($nombre) > 50) {
-        $mensaje = "El nombre debe tener entre 2 y 50 caracteres.";
+        $mensaje = t("El nombre debe tener entre 2 y 50 caracteres.");
         $tipo_alerta = "danger";
 
     } elseif (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
-        $mensaje = "El formato del correo electrónico no es válido.";
+        $mensaje = t("El formato del correo electrónico no es válido.");
         $tipo_alerta = "danger";
 
     } elseif ($password !== $password_confirm) {
         // Comprobación clave: las dos contraseñas deben ser idénticas
-        $mensaje = "Las contraseñas no coinciden. Vuelve a escribirlas.";
+        $mensaje = t("Las contraseñas no coinciden. Vuelve a escribirlas.");
         $tipo_alerta = "danger";
 
     } elseif (!preg_match('/^(?=.*\d)(?=.*[a-z])(?=.*[A-Z]).{8,}$/', $password)) {
-        $mensaje = "La contraseña debe tener mínimo 8 caracteres, una mayúscula y un número.";
+        $mensaje = t("La contraseña debe tener mínimo 8 caracteres, una mayúscula y un número.");
         $tipo_alerta = "danger";
 
     } else {
@@ -56,7 +57,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         $stmt_check->store_result();
 
         if ($stmt_check->num_rows > 0) {
-            $mensaje = "Este correo ya está registrado. ¿Quieres <a href='login.php' class='alert-link'>iniciar sesión</a>?";
+            $mensaje = t("Este correo ya está registrado. ¿Quieres <a href='login.php' class='alert-link'>iniciar sesión</a>?");
             $tipo_alerta = "warning";
             $stmt_check->close();
 
@@ -80,21 +81,21 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
 
                 // --- Enviar email de verificación ---
                 $enlace = "https://172.16.200.247/verificar.php?token=" . $token;
-                $asunto = "[Acción Requerida] Verifica tu cuenta en Algorya";
-                $cuerpo = "Hola $nombre,\n\n";
-                $cuerpo .= "Gracias por registrarte en Algorya. Para activar tu cuenta, haz clic en el siguiente enlace:\n\n";
+                $asunto = t("[Acción Requerida] Verifica tu cuenta en Algorya");
+                $cuerpo = t("Hola $nombre,\n\n");
+                $cuerpo .= t("Gracias por registrarte en Algorya. Para activar tu cuenta, haz clic en el siguiente enlace:") . "\n\n";
                 $cuerpo .= "$enlace\n\n";
-                $cuerpo .= "Si no solicitaste este registro, ignora este mensaje.\n\n";
-                $cuerpo .= "Atentamente,\nEl equipo de Algorya";
+                $cuerpo .= t("Si no solicitaste este registro, ignora este mensaje.") . "\n\n";
+                $cuerpo .= t("Atentamente,\nEl equipo de Algorya");
                 $cabeceras = "From: noreply@algorya.store\r\nReply-To: noreply@algorya.store\r\nX-Mailer: PHP/" . phpversion();
 
                 @mail($email, $asunto, $cuerpo, $cabeceras);
 
-                $mensaje = "¡Registro completado! Revisa tu correo (<strong>$email</strong>) y haz clic en el enlace de verificación para activar tu cuenta.";
+                $mensaje = t("¡Registro completado! Revisa tu correo (<strong>$email</strong>) y haz clic en el enlace de verificación para activar tu cuenta.");
                 $tipo_alerta = "success";
 
             } else {
-                $mensaje = "Error al crear la cuenta. Inténtalo de nuevo.";
+                $mensaje = t("Error al crear la cuenta. Inténtalo de nuevo.");
                 $tipo_alerta = "danger";
             }
 
@@ -104,12 +105,11 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
 }
 ?>
 <!DOCTYPE html>
-<html lang="es" data-bs-theme="light">
-
+<html lang="<?= LANG ?>" data-bs-theme="light"></html>
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Crear cuenta | Algorya</title>
+    <title><?= t('Crear cuenta') ?> | Algorya</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css">
     <link rel="stylesheet" href="estilos.css">
@@ -127,8 +127,8 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                         <!-- Cabecera -->
                         <div class="text-center mb-4">
                             <i class="bi bi-person-plus-fill fs-1 text-primary"></i>
-                            <h2 class="fw-bold mt-2 premium-text">Crear una cuenta</h2>
-                            <p class="premium-muted">Únete a Algorya y gestiona tus pedidos</p>
+                            <h2 class="fw-bold mt-2 premium-text"><?= t('Crear una cuenta') ?></h2>
+                            <p class="premium-muted"><?= t('Únete a Algorya y gestiona tus pedidos') ?></p>
                         </div>
 
                         <!-- Mensaje de resultado (éxito, error, aviso) -->
@@ -146,7 +146,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
 
                             <!-- Nombre -->
                             <div class="mb-3">
-                                <label for="nombre" class="form-label fw-bold premium-text">Nombre completo</label>
+                                <label for="nombre" class="form-label fw-bold premium-text"><?= t('Nombre completo') ?></label>
                                 <input type="text" class="form-control premium-input shadow-none py-2" id="nombre"
                                     name="nombre" placeholder="Ej. Juan Pérez" maxlength="50"
                                     value="<?php echo isset($_POST['nombre']) ? htmlspecialchars($_POST['nombre']) : ''; ?>"
@@ -155,7 +155,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
 
                             <!-- Email -->
                             <div class="mb-3">
-                                <label for="email" class="form-label fw-bold premium-text">Correo electrónico</label>
+                                <label for="email" class="form-label fw-bold premium-text"><?= t('Correo electrónico') ?></label>
                                 <input type="email" class="form-control premium-input shadow-none py-2" id="email"
                                     name="email" placeholder="tu@correo.com"
                                     value="<?php echo isset($_POST['email']) ? htmlspecialchars($_POST['email']) : ''; ?>"
@@ -164,7 +164,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
 
                             <!-- Contraseña -->
                             <div class="mb-3">
-                                <label for="password" class="form-label fw-bold premium-text">Contraseña</label>
+                                <label for="password" class="form-label fw-bold premium-text"><?= t('Contraseña') ?></label>
                                 <div class="input-group">
                                     <input type="password" class="form-control premium-input shadow-none py-2"
                                         id="password" name="password" placeholder="Mínimo 8 caracteres" required>
@@ -174,18 +174,17 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                                     </button>
                                 </div>
                                 <div class="form-text premium-muted">
-                                    Mínimo 8 caracteres, una mayúscula y un número.
+                                    <?= t('Mínimo 8 caracteres, una mayúscula y un número.') ?>
                                 </div>
                                 <!-- Aviso Bloq Mayús -->
                                 <div id="caps-warning" class="text-warning small fw-bold d-none mt-1">
-                                    <i class="bi bi-exclamation-triangle-fill me-1"></i>¡Bloq Mayús activado!
+                                    <i class="bi bi-exclamation-triangle-fill me-1"></i><?= t('¡Bloq Mayús activado!') ?>
                                 </div>
                             </div>
 
                             <!-- Confirmar contraseña (campo nuevo) -->
                             <div class="mb-4">
-                                <label for="password_confirm" class="form-label fw-bold premium-text">Confirmar
-                                    contraseña</label>
+                                <label for="password_confirm" class="form-label fw-bold premium-text"><?= t('Confirmar contraseña') ?></label>
                                 <div class="input-group">
                                     <input type="password" class="form-control premium-input shadow-none py-2"
                                         id="password_confirm" name="password_confirm" placeholder="Repite la contraseña"
@@ -202,18 +201,18 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                             <button type="submit" id="btn-registro"
                                 class="btn btn-primary w-100 py-2 fw-bold rounded-pill shadow-sm"
                                 style="background-color: #3b82f6; border: none;">
-                                <i class="bi bi-person-check me-2"></i>Confirmar Registro
+                                <i class="bi bi-person-check me-2"></i><?= t('Confirmar Registro') ?>
                             </button>
 
                         </form>
 
                         <div class="text-center mt-4">
                             <a href="login.php" class="text-primary text-decoration-none fw-bold">
-                                ¿Ya tienes cuenta? Inicia sesión aquí
+                                <?= t('¿Ya tienes cuenta? Inicia sesión aquí') ?>
                             </a>
                             <br>
                             <a href="index.php" class="text-decoration-none premium-muted small mt-2 d-inline-block">
-                                <i class="bi bi-arrow-left"></i> Volver al catálogo
+                                <i class="bi bi-arrow-left"></i> <?= t('Volver al catálogo') ?>
                             </a>
                         </div>
 

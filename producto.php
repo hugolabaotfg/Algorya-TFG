@@ -1,5 +1,6 @@
 <?php
 session_start();
+require 'includes/lang.php';
 require 'includes/db.php';
 
 if (!isset($_GET['id'])) {
@@ -30,8 +31,7 @@ if (isset($_SESSION['user_id'])) {
 }
 ?>
 <!DOCTYPE html>
-<html lang="es" data-bs-theme="light">
-
+<html lang="<?= LANG ?>" data-bs-theme="light">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -56,7 +56,7 @@ if (isset($_SESSION['user_id'])) {
                 <div id="darkModeToggle" title="Alternar Modo Oscuro"><i class="bi bi-moon-stars-fill fs-6"></i></div>
                 <a href="carrito.php"
                     class="btn btn-outline-primary btn-sm rounded-pill px-3 position-relative d-flex align-items-center">
-                    <i class="bi bi-cart3 me-1"></i> <span class="d-none d-md-inline">Carrito</span>
+                    <i class="bi bi-cart3 me-1"></i> <span class="d-none d-md-inline"><?= t('Carrito') ?></span>
                     <span id="cart-badge"
                         class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger shadow-sm"
                         <?php echo ($contador_carrito > 0) ? '' : 'style="display:none;"'; ?>>
@@ -64,7 +64,7 @@ if (isset($_SESSION['user_id'])) {
                     </span>
                 </a>
                 <a href="index.php" class="btn btn-outline-secondary btn-sm rounded-pill"><i
-                        class="bi bi-arrow-left"></i> Volver</a>
+                        class="bi bi-arrow-left"></i> <?= t('Volver') ?></a>
             </div>
         </div>
     </nav>
@@ -79,7 +79,7 @@ if (isset($_SESSION['user_id'])) {
                 </div>
                 <div class="col-md-6 p-4 p-md-5 d-flex flex-column justify-content-center">
                     <span class="badge bg-primary rounded-pill mb-3 d-inline-block" style="width: fit-content;"><i
-                            class="bi bi-lightning-charge-fill me-1"></i> Envío Dropshipping</span>
+                            class="bi bi-lightning-charge-fill me-1"></i> <?= t('Envío') ?></span>
                     <h1 class="fw-bold premium-text mb-3">
                         <?php echo htmlspecialchars($producto['nombre']); ?>
                     </h1>
@@ -88,8 +88,8 @@ if (isset($_SESSION['user_id'])) {
                     </h2>
 
                     <p class="premium-muted mb-4">
-                        Este artículo exclusivo ha sido seleccionado por nuestro algoritmo de tendencias. Stock actual
-                        en almacén distribuidor: <strong>
+                       <?= t('Este artículo exclusivo ha sido seleccionado por nuestro algoritmo de tendencias. Stock actual') ?>
+                        <?= t('en almacén distribuidor:') ?> <strong>
                             <?php echo $producto['stock']; ?> uds
                         </strong>.
                     </p>
@@ -111,11 +111,11 @@ if (isset($_SESSION['user_id'])) {
                             </div>
                             <button type="submit"
                                 class="btn btn-primary btn-lg rounded-pill fw-bold flex-grow-1 shadow-sm btn-submit-cart">
-                                <i class="bi bi-cart-plus me-2"></i> Añadir
+                                <i class="bi bi-cart-plus me-2"></i> <?= t('Añadir') ?>
                             </button>
                         </div>
                         <div class="text-center small premium-muted"><i
-                                class="bi bi-shield-check text-success me-1"></i> Transacción segura y cifrada</div>
+                                class="bi bi-shield-check text-success me-1"></i> <?= t('Transacción segura y cifrada') ?></div>
                     </form>
                 </div>
             </div>
@@ -126,8 +126,7 @@ if (isset($_SESSION['user_id'])) {
         <div id="cartToast" class="toast align-items-center text-white bg-success border-0 shadow-lg" role="alert"
             aria-live="assertive" aria-atomic="true" data-bs-delay="3000">
             <div class="d-flex">
-                <div class="toast-body fw-bold fs-6"><i class="bi bi-check-circle-fill me-2"></i> ¡Añadido al carrito
-                    con éxito!</div>
+                <div class="toast-body fw-bold fs-6"><i class="bi bi-check-circle-fill me-2"></i> <?= t('¡Añadido al carrito con éxito!') ?></div>
                 <button type="button" class="btn-close btn-close-white me-3 m-auto" data-bs-dismiss="toast"></button>
             </div>
         </div>

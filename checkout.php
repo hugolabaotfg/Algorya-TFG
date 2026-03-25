@@ -7,6 +7,7 @@
 // =============================================================================
 
 session_start();
+require 'includes/lang.php';
 require 'includes/db.php';
 
 // Solo usuarios logueados pueden llegar aquí
@@ -45,12 +46,11 @@ while ($row = $res_cart->fetch_assoc()) {
 }
 ?>
 <!DOCTYPE html>
-<html lang="es" data-bs-theme="light">
-
+<html lang="<?= LANG ?>" data-bs-theme="light">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Confirmar Pedido | Algorya</title>
+    <title><?= t('Confirmar Pedido') ?> | Algorya</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css">
     <link rel="stylesheet" href="estilos.css">
@@ -72,7 +72,7 @@ while ($row = $res_cart->fetch_assoc()) {
                     <i class="bi bi-moon-stars-fill fs-6"></i>
                 </div>
                 <a href="carrito.php" class="btn btn-outline-secondary btn-sm rounded-pill">
-                    <i class="bi bi-arrow-left me-1"></i>Volver al carrito
+                    <i class="bi bi-arrow-left me-1"></i><?= t('Volver al carrito') ?>
                 </a>
             </div>
         </div>
@@ -85,7 +85,7 @@ while ($row = $res_cart->fetch_assoc()) {
 
                 <!-- Título -->
                 <h2 class="fw-bold premium-text mb-4">
-                    <i class="bi bi-bag-check text-primary me-2"></i>Confirmar tu pedido
+                    <i class="bi bi-bag-check text-primary me-2"></i><?= t('Confirmar tu pedido') ?>
                 </h2>
 
                 <!-- Tarjeta con el resumen -->
@@ -94,7 +94,7 @@ while ($row = $res_cart->fetch_assoc()) {
 
                         <h6 class="fw-bold premium-muted text-uppercase mb-3"
                             style="letter-spacing:.5px; font-size:.75rem;">
-                            <i class="bi bi-list-ul me-1"></i>Resumen de productos
+                            <i class="bi bi-list-ul me-1"></i><?= t('Resumen de productos') ?>
                         </h6>
 
                         <!-- Lista de productos del carrito -->
@@ -110,9 +110,7 @@ while ($row = $res_cart->fetch_assoc()) {
                                     <p class="mb-0 fw-semibold premium-text" style="font-size:.9rem;">
                                         <?php echo htmlspecialchars($item['nombre']); ?>
                                     </p>
-                                    <small class="premium-muted">Cantidad:
-                                        <?php echo (int) $item['cantidad']; ?>
-                                    </small>
+                                    <small class="premium-muted"><?= t('Cantidad:') ?> <?php echo (int) $item['cantidad']; ?></small>
                                 </div>
                                 <span class="fw-bold text-success">
                                     <?php echo number_format($item['precio'] * $item['cantidad'], 2); ?> €
@@ -122,7 +120,7 @@ while ($row = $res_cart->fetch_assoc()) {
 
                         <!-- Total -->
                         <div class="d-flex justify-content-between align-items-center mt-3 pt-2">
-                            <span class="fw-bold premium-text fs-5">Total a pagar:</span>
+                            <span class="fw-bold premium-text fs-5"><?= t('Total a pagar:') ?></span>
                             <span class="fw-black text-primary fs-4">
                                 <?php echo number_format($total_pedido, 2); ?> €
                             </span>
@@ -135,11 +133,11 @@ while ($row = $res_cart->fetch_assoc()) {
                     style="background: rgba(59,130,246,0.1); color: var(--text-main);">
                     <i class="bi bi-info-circle-fill text-primary mt-1 flex-shrink-0"></i>
                     <div>
-                        <strong>Modo Sandbox (Pruebas)</strong> — No se realizarán cargos reales.<br>
+                        <strong><?= t('Modo Sandbox (Pruebas)') ?></strong> — <?= t('No se realizarán cargos reales.') ?><br>
                         <span class="small premium-muted">
-                            Usa la tarjeta de prueba de Stripe:
+                            <?= t('Usa la tarjeta de prueba de Stripe:') ?>
                             <code class="text-primary fw-bold">4242 4242 4242 4242</code>
-                            · Fecha: cualquiera futura · CVC: cualquier 3 dígitos
+                            · <?= t('Fecha:') ?> <?= t('cualquiera futura') ?> · CVC: <?= t('cualquier 3 dígitos') ?>
                         </span>
                     </div>
                 </div>
@@ -149,14 +147,14 @@ while ($row = $res_cart->fetch_assoc()) {
                     <button type="submit" class="btn btn-primary btn-lg w-100 rounded-pill fw-bold shadow-sm py-3"
                         style="background: linear-gradient(135deg, #3b82f6, #6366f1); border: none; font-size: 1.1rem;">
                         <i class="bi bi-stripe me-2"></i>
-                        Pagar
-                        <?php echo number_format($total_pedido, 2); ?> € con Stripe
+                        <?= t('Pagar') ?>
+                        <?php echo number_format($total_pedido, 2); ?> <?= t('€ con Stripe') ?>
                     </button>
                 </form>
 
                 <p class="text-center premium-muted small mt-3">
                     <i class="bi bi-lock-fill me-1"></i>
-                    Pago seguro procesado por Stripe. Algorya nunca almacena datos de tu tarjeta.
+                    <?= t('Pago seguro procesado por Stripe. Algorya nunca almacena datos de tu tarjeta.') ?>
                 </p>
 
             </div>
