@@ -1,14 +1,15 @@
 <?php
 // =============================================================================
 // ALGORYA - index.php
-// Catálogo principal + carrito AJAX + modal de login inline para visitantes
+// Catálogo principal con sistema i18n (ES/EN) integrado.
 // =============================================================================
 
 session_start();
 require 'includes/db.php';
+require 'includes/lang.php'; // ← Carga el motor i18n + función t()
 
 // =============================================================================
-// BLOQUE 1: ACCIÓN AJAX — Añadir producto al carrito
+// ACCIÓN AJAX — Añadir producto al carrito
 // =============================================================================
 
 if (isset($_POST['add_to_cart'])) {
@@ -88,7 +89,7 @@ if (isset($_POST['add_to_cart'])) {
 }
 
 // =============================================================================
-// BLOQUE 2: CONTADOR INICIAL DEL CARRITO
+// CONTADOR INICIAL DEL CARRITO
 // =============================================================================
 
 $contador_carrito = 0;
@@ -106,7 +107,7 @@ if (isset($_SESSION['user_id'])) {
 }
 
 // =============================================================================
-// BLOQUE 3: PAGINACIÓN
+// PAGINACIÓN
 // =============================================================================
 
 $productos_por_pagina = 12;
@@ -121,14 +122,25 @@ $total_paginas = ceil($total_productos / $productos_por_pagina);
 
 $resultado = $conn->query("SELECT * FROM productos ORDER BY id DESC LIMIT $productos_por_pagina OFFSET $offset");
 
+// =============================================================================
+// URL base para el selector de idioma (quita ?lang=xx de la URL actual)
+// Así el selector no acumula parámetros ?lang=es&lang=en&lang=es...
+// =============================================================================
+$url_sin_lang = preg_replace('/([&?])lang=[a-z]{2}(&|$)/', '$1', $_SERVER['REQUEST_URI']);
+$url_sin_lang = rtrim($url_sin_lang, '?&');
+$separador = str_contains($url_sin_lang, '?') ? '&' : '?';
+
 ?>
 <!DOCTYPE html>
-<html lang="es" data-bs-theme="light">
+<html lang="<?= LANG ?>" data-bs-theme="light">
 
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Algorya | Catálogo Exclusivo</title>
+    <title>
+        <?= t('marca_nombre') ?> |
+        <?= t('catalogo_titulo') ?>
+    </title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;800&display=swap" rel="stylesheet">
@@ -146,74 +158,130 @@ $resultado = $conn->query("SELECT * FROM productos ORDER BY id DESC LIMIT $produ
     <nav class="navbar navbar-expand-lg sticky-top shadow-sm">
         <div class="container">
 
-            <a class="navbar-brand fw-bold fs-3 text-decoration-none" href="index.php" style="letter-spacing: -1px;">
+            <!-- Logo -->
+            <a class="navbar-brand fw-bold fs-3 text-decoration-none" href="index.php" style="letter-spacing:-1px;">
                 <i class="bi bi-box-seam-fill text-primary me-1"></i>
-                <span class="text-primary">Algorya</span><span class="premium-text"
-                    style="font-size: 0.55em; margin-left: 1px;">.store</span>
+                <span class="text-primary">
+                    <?= t('marca_nombre') ?>
+                </span><span class="premium-text" style="font-size:0.55em;margin-left:1px;">
+                    <?= t('marca_tld') ?>
+                </span>
             </a>
 
             <div class="d-flex align-items-center gap-2 gap-md-3">
 
-                <div id="darkModeToggle" title="Alternar Modo Oscuro">
+                <!-- Modo oscuro -->
+                <div id="darkModeToggle" title="<?= t('nav_modo_oscuro') ?>">
                     <i class="bi bi-moon-stars-fill fs-6"></i>
                 </div>
 
+                <!-- ── SELECTOR DE IDIOMA ────────────────────────────────────── -->
+                <!-- Dropdown con banderas. Al pulsar cambia el idioma vía ?lang=xx
+                 y lo guarda en cookie para todas las páginas. -->
+                <div class="dropdown">
+                    <button class="btn btn-sm btn-outline-secondary rounded-pill px-2 dropdown-toggle" type="button"
+                        data-bs-toggle="dropdown" title="<?= t('lang_selector_titulo') ?>">
+                        <?php if (LANG === 'es'): ?>
+                            🇪🇸 <span class="d-none d-md-inline">ES</span>
+                        <?php else: ?>
+                            🇬🇧 <span class="d-none d-md-inline">EN</span>
+                        <?php endif; ?>
+                    </button>
+                    <ul class="dropdown-menu dropdown-menu-end premium-card border-0 shadow mt-1"
+                        style="min-width:120px;">
+                        <li>
+                            <a class="dropdown-item premium-text <?= LANG === 'es' ? 'fw-bold text-primary' : '' ?>"
+                                href="<?= $url_sin_lang . $separador ?>lang=es">
+                                🇪🇸
+                                <?= t('lang_es') ?>
+                            </a>
+                        </li>
+                        <li>
+                            <a class="dropdown-item premium-text <?= LANG === 'en' ? 'fw-bold text-primary' : '' ?>"
+                                href="<?= $url_sin_lang . $separador ?>lang=en">
+                                🇬🇧
+                                <?= t('lang_en') ?>
+                            </a>
+                        </li>
+                    </ul>
+                </div>
+                <!-- ── FIN SELECTOR DE IDIOMA ─────────────────────────────────── -->
+
+                <!-- Carrito (oculto para admin) -->
                 <?php if (!isset($_SESSION['rol']) || $_SESSION['rol'] !== 'admin'): ?>
                     <a href="carrito.php"
                         class="btn btn-outline-primary btn-sm rounded-pill px-3 position-relative d-flex align-items-center">
                         <i class="bi bi-cart3 me-1"></i>
-                        <span class="d-none d-md-inline">Carrito</span>
+                        <span class="d-none d-md-inline">
+                            <?= t('nav_carrito') ?>
+                        </span>
                         <span id="cart-badge"
                             class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger shadow-sm"
-                            <?php echo ($contador_carrito > 0) ? '' : 'style="display:none;"'; ?>>
-                            <?php echo $contador_carrito; ?>
+                            <?= ($contador_carrito > 0) ? '' : 'style="display:none;"' ?>>
+                            <?= $contador_carrito ?>
                         </span>
                     </a>
                 <?php endif; ?>
 
                 <?php if (isset($_SESSION['user_id'])): ?>
+                    <!-- Usuario logueado -->
                     <a href="perfil.php" class="premium-text d-none d-md-inline text-decoration-none fw-semibold">
                         <i class="bi bi-person-circle text-primary"></i>
-                        <?php echo htmlspecialchars($_SESSION['nombre']); ?>
+                        <?= htmlspecialchars($_SESSION['nombre']) ?>
                     </a>
 
                     <?php if ($_SESSION['rol'] === 'admin'): ?>
                         <div class="dropdown d-inline-block">
                             <button class="btn btn-primary btn-sm rounded-pill dropdown-toggle px-3" type="button"
                                 data-bs-toggle="dropdown">
-                                <i class="bi bi-gear-fill me-1"></i> Gestión
+                                <i class="bi bi-gear-fill me-1"></i>
+                                <?= t('nav_gestion') ?>
                             </button>
                             <ul class="dropdown-menu dropdown-menu-end premium-card border-0 shadow-lg mt-2">
                                 <li><a class="dropdown-item premium-text" href="admin_pedidos.php"><i
-                                            class="bi bi-cart-check me-2"></i>Pedidos</a></li>
+                                            class="bi bi-cart-check me-2"></i>
+                                        <?= t('nav_pedidos') ?>
+                                    </a></li>
                                 <li><a class="dropdown-item premium-text" href="admin_usuarios.php"><i
-                                            class="bi bi-people me-2"></i>Clientes</a></li>
+                                            class="bi bi-people me-2"></i>
+                                        <?= t('nav_clientes') ?>
+                                    </a></li>
                                 <li><a class="dropdown-item premium-text" href="admin_estadisticas.php"><i
-                                            class="bi bi-bar-chart me-2"></i>Estadísticas</a></li>
+                                            class="bi bi-bar-chart me-2"></i>
+                                        <?= t('nav_estadisticas') ?>
+                                    </a></li>
                                 <li><a class="dropdown-item premium-text" href="admin_mailing.php"><i
-                                            class="bi bi-envelope-at me-2"></i>Enviar Email</a></li>
+                                            class="bi bi-envelope-at me-2"></i>
+                                        <?= t('nav_enviar_email') ?>
+                                    </a></li>
                                 <li>
-                                    <hr class="dropdown-divider" style="border-color: var(--border-color);">
+                                    <hr class="dropdown-divider" style="border-color:var(--border-color);">
                                 </li>
                                 <li><a class="dropdown-item premium-text" href="add_product.php"><i
-                                            class="bi bi-plus-circle me-2"></i>Añadir Producto</a></li>
+                                            class="bi bi-plus-circle me-2"></i>
+                                        <?= t('nav_anadir_producto') ?>
+                                    </a></li>
                             </ul>
                         </div>
                     <?php endif; ?>
 
-                    <a href="logout.php" class="btn btn-danger btn-sm border-0 rounded-pill ms-1" title="Cerrar sesión">
+                    <a href="logout.php" class="btn btn-danger btn-sm border-0 rounded-pill ms-1"
+                        title="<?= t('nav_cerrar_sesion') ?>">
                         <i class="bi bi-box-arrow-right"></i>
                     </a>
 
                 <?php else: ?>
-                    <!-- Visitante: "Entrar" abre el modal, "Registrarse" va a registro.php -->
+                    <!-- Visitante: abre modal de login o va a registro -->
                     <button type="button" class="btn btn-outline-primary btn-sm rounded-pill px-3 fw-semibold"
                         data-bs-toggle="modal" data-bs-target="#loginModal">
-                        <i class="bi bi-person me-1"></i> Entrar
+                        <i class="bi bi-person me-1"></i>
+                        <?= t('nav_entrar') ?>
                     </button>
                     <a href="registro.php" class="btn btn-primary btn-sm rounded-pill px-3 fw-semibold">
                         <i class="bi bi-person-plus me-1"></i>
-                        <span class="d-none d-md-inline">Registrarse</span>
+                        <span class="d-none d-md-inline">
+                            <?= t('nav_registrarse') ?>
+                        </span>
                     </a>
                 <?php endif; ?>
 
@@ -227,11 +295,11 @@ $resultado = $conn->query("SELECT * FROM productos ORDER BY id DESC LIMIT $produ
      ========================================================================= -->
     <div class="hero-section mb-5">
         <div class="container text-center" data-aos="zoom-in" data-aos-duration="800">
-            <h1 class="fw-bold mb-3 premium-text" style="font-size: 3.5rem; letter-spacing: -2px;">
-                Descubre lo más viral
+            <h1 class="fw-bold mb-3 premium-text" style="font-size:3.5rem;letter-spacing:-2px;">
+                <?= t('hero_titulo') ?>
             </h1>
-            <p class="premium-muted fs-5 mx-auto" style="max-width: 600px;">
-                Nuestro algoritmo rastrea el mercado global para traerte los productos top ventas antes que nadie.
+            <p class="premium-muted fs-5 mx-auto" style="max-width:600px;">
+                <?= t('hero_subtitulo') ?>
             </p>
         </div>
     </div>
@@ -243,10 +311,13 @@ $resultado = $conn->query("SELECT * FROM productos ORDER BY id DESC LIMIT $produ
     <div class="container mb-5">
 
         <div class="d-flex justify-content-between align-items-end mb-4 border-bottom pb-2"
-            style="border-color: var(--border-color) !important;">
-            <h3 class="fw-bold m-0 premium-text">Catálogo del día</h3>
+            style="border-color:var(--border-color) !important;">
+            <h3 class="fw-bold m-0 premium-text">
+                <?= t('catalogo_titulo') ?>
+            </h3>
             <span class="text-success small fw-semibold">
-                <i class="bi bi-cloud-check me-1"></i>Sincronizado hoy
+                <i class="bi bi-cloud-check me-1"></i>
+                <?= t('catalogo_sincronizado') ?>
             </span>
         </div>
 
@@ -256,66 +327,66 @@ $resultado = $conn->query("SELECT * FROM productos ORDER BY id DESC LIMIT $produ
                 $delay = 0;
                 while ($row = $resultado->fetch_assoc()) {
                     ?>
-                    <div class="col" data-aos="fade-up" data-aos-delay="<?php echo $delay; ?>">
+                    <div class="col" data-aos="fade-up" data-aos-delay="<?= $delay ?>">
                         <div class="card premium-card h-100 rounded-4 overflow-hidden position-relative">
 
                             <?php if (isset($_SESSION['rol']) && $_SESSION['rol'] === 'admin'): ?>
                                 <div class="position-absolute top-0 end-0 p-2 z-2 d-flex gap-1 admin-actions">
-                                    <a href="admin_edit_product.php?id=<?php echo $row['id']; ?>"
+                                    <a href="admin_edit_product.php?id=<?= $row['id'] ?>"
                                         class="btn btn-warning btn-sm rounded-pill p-1 d-flex align-items-center justify-content-center"
-                                        style="width: 32px; height: 32px;" title="Editar">
+                                        style="width:32px;height:32px;" title="Editar">
                                         <i class="bi bi-pencil-fill"></i>
                                     </a>
                                     <button type="button"
                                         class="btn btn-danger btn-sm rounded-pill p-1 d-flex align-items-center justify-content-center btn-delete-product"
-                                        data-id="<?php echo $row['id']; ?>"
-                                        data-name="<?php echo htmlspecialchars($row['nombre']); ?>"
-                                        style="width: 32px; height: 32px;" title="Borrar">
+                                        data-id="<?= $row['id'] ?>" data-name="<?= htmlspecialchars($row['nombre']) ?>"
+                                        style="width:32px;height:32px;" title="Borrar">
                                         <i class="bi bi-trash-fill"></i>
                                     </button>
                                 </div>
                             <?php endif; ?>
 
-                            <a href="producto.php?id=<?php echo $row['id']; ?>"
+                            <a href="producto.php?id=<?= $row['id'] ?>"
                                 class="premium-img-wrapper d-block text-center text-decoration-none z-1">
-                                <img src="img/<?php echo htmlspecialchars($row['imagen']); ?>" class="img-fluid"
-                                    alt="<?php echo htmlspecialchars($row['nombre']); ?>"
-                                    style="height: 200px; width: 100%; object-fit: contain; filter: drop-shadow(0 4px 6px rgba(0,0,0,0.05));"
+                                <img src="img/<?= htmlspecialchars($row['imagen']) ?>" class="img-fluid"
+                                    alt="<?= htmlspecialchars($row['nombre']) ?>"
+                                    style="height:200px;width:100%;object-fit:contain;filter:drop-shadow(0 4px 6px rgba(0,0,0,0.05));"
                                     onerror="this.src='https://dummyimage.com/200x200/dee2e6/6c757d.jpg&text=Sin+Imagen'">
                             </a>
 
                             <div class="card-body d-flex flex-column pt-4 z-1">
-                                <a href="producto.php?id=<?php echo $row['id']; ?>" class="text-decoration-none mb-3">
+                                <a href="producto.php?id=<?= $row['id'] ?>" class="text-decoration-none mb-3">
                                     <h5 class="card-title fw-bold text-truncate premium-text"
-                                        title="<?php echo htmlspecialchars($row['nombre']); ?>">
-                                        <?php echo htmlspecialchars($row['nombre']); ?>
+                                        title="<?= htmlspecialchars($row['nombre']) ?>">
+                                        <?= htmlspecialchars($row['nombre']) ?>
                                     </h5>
                                 </a>
 
-                                <div class="mt-auto pt-3 border-top" style="border-color: var(--border-color) !important;">
+                                <div class="mt-auto pt-3 border-top" style="border-color:var(--border-color) !important;">
                                     <div class="d-flex justify-content-between align-items-center mb-3">
                                         <span class="fs-4 fw-black text-success">
-                                            <?php echo number_format($row['precio'], 2); ?> €
+                                            <?= number_format($row['precio'], 2) ?> €
                                         </span>
                                         <span class="premium-muted small fw-medium">
-                                            Stock:
-                                            <?php echo (int) $row['stock']; ?>
+                                            <?= t('producto_stock') ?>
+                                            <?= (int) $row['stock'] ?>
                                         </span>
                                     </div>
 
                                     <?php if (!isset($_SESSION['rol']) || $_SESSION['rol'] !== 'admin'): ?>
                                         <form action="index.php" method="POST" class="m-0 form-add-cart">
                                             <input type="hidden" name="add_to_cart" value="1">
-                                            <input type="hidden" name="id" value="<?php echo (int) $row['id']; ?>">
-                                            <input type="hidden" name="nombre"
-                                                value="<?php echo htmlspecialchars($row['nombre']); ?>">
-                                            <input type="hidden" name="precio" value="<?php echo $row['precio']; ?>">
-                                            <input type="hidden" name="imagen"
-                                                value="<?php echo htmlspecialchars($row['imagen']); ?>">
+                                            <input type="hidden" name="id" value="<?= (int) $row['id'] ?>">
+                                            <input type="hidden" name="nombre" value="<?= htmlspecialchars($row['nombre']) ?>">
+                                            <input type="hidden" name="precio" value="<?= $row['precio'] ?>">
+                                            <input type="hidden" name="imagen" value="<?= htmlspecialchars($row['imagen']) ?>">
                                             <input type="hidden" name="cantidad" value="1">
                                             <button type="submit"
-                                                class="btn btn-premium-add w-100 rounded-pill fw-bold py-2 shadow-sm btn-submit-cart">
-                                                <i class="bi bi-cart-plus me-2"></i> Añadir al carro
+                                                class="btn btn-premium-add w-100 rounded-pill fw-bold py-2 shadow-sm btn-submit-cart"
+                                                data-texto-original="<?= t('btn_anadir_carro') ?>"
+                                                data-texto-cargando="<?= t('btn_anadiendo') ?>">
+                                                <i class="bi bi-cart-plus me-2"></i>
+                                                <?= t('btn_anadir_carro') ?>
                                             </button>
                                         </form>
                                     <?php endif; ?>
@@ -331,34 +402,36 @@ $resultado = $conn->query("SELECT * FROM productos ORDER BY id DESC LIMIT $produ
                 echo '<div class="col-12">
                     <div class="alert premium-card text-center py-5 rounded-4" data-aos="zoom-in">
                         <i class="bi bi-inbox fs-1 premium-muted"></i>
-                        <h5 class="mt-3 fw-bold premium-text">El catálogo está vacío</h5>
-                        <p class="premium-muted mb-0">La API se sincronizará esta madrugada.</p>
+                        <h5 class="mt-3 fw-bold premium-text">' . t('catalogo_vacio_titulo') . '</h5>
+                        <p class="premium-muted mb-0">' . t('catalogo_vacio_texto') . '</p>
                     </div>
                   </div>';
             }
             ?>
         </div>
 
+        <!-- Paginación -->
         <?php if ($total_paginas > 1): ?>
             <nav aria-label="Navegación del catálogo">
                 <ul class="pagination justify-content-center">
-                    <li class="page-item <?php echo ($pagina_actual <= 1) ? 'disabled' : ''; ?>">
+                    <li class="page-item <?= ($pagina_actual <= 1) ? 'disabled' : '' ?>">
                         <a class="page-link premium-pagination rounded-start-pill px-4 py-2 fw-bold"
-                            href="?pagina=<?php echo $pagina_actual - 1; ?>">
-                            <i class="bi bi-chevron-left me-1"></i> Ant
+                            href="?pagina=<?= $pagina_actual - 1 ?>">
+                            <i class="bi bi-chevron-left me-1"></i>
+                            <?= t('paginacion_anterior') ?>
                         </a>
                     </li>
                     <?php for ($i = 1; $i <= $total_paginas; $i++): ?>
-                        <li class="page-item <?php echo ($pagina_actual == $i) ? 'active' : ''; ?>">
-                            <a class="page-link premium-pagination py-2 px-3 fw-bold" href="?pagina=<?php echo $i; ?>">
-                                <?php echo $i; ?>
+                        <li class="page-item <?= ($pagina_actual == $i) ? 'active' : '' ?>">
+                            <a class="page-link premium-pagination py-2 px-3 fw-bold" href="?pagina=<?= $i ?>">
+                                <?= $i ?>
                             </a>
                         </li>
                     <?php endfor; ?>
-                    <li class="page-item <?php echo ($pagina_actual >= $total_paginas) ? 'disabled' : ''; ?>">
+                    <li class="page-item <?= ($pagina_actual >= $total_paginas) ? 'disabled' : '' ?>">
                         <a class="page-link premium-pagination rounded-end-pill px-4 py-2 fw-bold"
-                            href="?pagina=<?php echo $pagina_actual + 1; ?>">
-                            Sig <i class="bi bi-chevron-right ms-1"></i>
+                            href="?pagina=<?= $pagina_actual + 1 ?>">
+                            <?= t('paginacion_siguiente') ?> <i class="bi bi-chevron-right ms-1"></i>
                         </a>
                     </li>
                 </ul>
@@ -371,17 +444,17 @@ $resultado = $conn->query("SELECT * FROM productos ORDER BY id DESC LIMIT $produ
     <!-- =========================================================================
      FOOTER
      ========================================================================= -->
-    <footer class="text-center py-5 mt-auto" style="border-top: 1px solid var(--border-color);">
+    <footer class="text-center py-5 mt-auto" style="border-top:1px solid var(--border-color);">
         <div class="container">
             <h5 class="fw-bold premium-text mb-3">
-                <i class="bi bi-box-seam-fill text-primary"></i> Algorya
+                <i class="bi bi-box-seam-fill text-primary"></i>
+                <?= t('marca_nombre') ?>
             </h5>
             <p class="mb-1 fw-medium premium-text opacity-75">
-                &copy;
-                <?php echo date("Y"); ?> Todos los derechos reservados.
+                <?= t('pie_derechos', [date('Y')]) ?>
             </p>
             <p class="mb-0 premium-muted small fw-bold">
-                Proyecto Final de Grado de ASIR realizado por Hugo Labao González
+                <?= t('pie_autor') ?>
             </p>
         </div>
     </footer>
@@ -389,15 +462,6 @@ $resultado = $conn->query("SELECT * FROM productos ORDER BY id DESC LIMIT $produ
 
     <!-- =========================================================================
      MODAL DE LOGIN INLINE
-     =========================================================================
-     ¿Cómo funciona?
-     - El botón "Entrar" tiene data-bs-toggle="modal" data-bs-target="#loginModal"
-       → Bootstrap abre este modal sin recargar la página.
-     - El formulario envía a login.php con un campo oculto "redirect=index.php"
-       → Si las credenciales son correctas: login.php inicia la sesión y redirige
-         al catálogo normalmente.
-       → Si son incorrectas: login.php redirige a index.php?error=1 y el JS
-         de abajo vuelve a abrir el modal automáticamente mostrando el error.
      ========================================================================= -->
     <div class="modal fade" id="loginModal" tabindex="-1" aria-labelledby="loginModalLabel" aria-hidden="true">
         <div class="modal-dialog modal-dialog-centered">
@@ -406,9 +470,12 @@ $resultado = $conn->query("SELECT * FROM productos ORDER BY id DESC LIMIT $produ
                 <div class="modal-header border-0 pb-0 px-4 pt-4">
                     <div>
                         <h5 class="modal-title fw-bold premium-text fs-4" id="loginModalLabel">
-                            <i class="bi bi-box-seam-fill text-primary me-2"></i>Algorya
+                            <i class="bi bi-box-seam-fill text-primary me-2"></i>
+                            <?= t('marca_nombre') ?>
                         </h5>
-                        <p class="premium-muted small mb-0">Introduce tus credenciales para continuar</p>
+                        <p class="premium-muted small mb-0">
+                            <?= t('modal_login_subtitulo') ?>
+                        </p>
                     </div>
                     <button type="button" class="btn-close ms-auto" data-bs-dismiss="modal"
                         aria-label="Cerrar"></button>
@@ -419,18 +486,17 @@ $resultado = $conn->query("SELECT * FROM productos ORDER BY id DESC LIMIT $produ
                     <?php if (isset($_GET['error']) && $_GET['error'] == '1'): ?>
                         <div class="alert alert-danger border-0 rounded-3 small py-2 mb-3">
                             <i class="bi bi-exclamation-triangle-fill me-2"></i>
-                            Credenciales incorrectas o cuenta no verificada. Inténtalo de nuevo.
+                            <?= t('modal_login_error') ?>
                         </div>
                     <?php endif; ?>
 
                     <form action="login.php" method="POST">
-                        <!-- Le decimos a login.php que si hay error, vuelva a index.php -->
                         <input type="hidden" name="redirect" value="index.php">
 
                         <div class="mb-3">
                             <label class="form-label premium-muted small fw-bold text-uppercase"
                                 style="letter-spacing:.5px;">
-                                Correo electrónico
+                                <?= t('modal_login_email') ?>
                             </label>
                             <input type="email" name="email"
                                 class="form-control form-control-lg premium-input shadow-none rounded-3"
@@ -440,14 +506,14 @@ $resultado = $conn->query("SELECT * FROM productos ORDER BY id DESC LIMIT $produ
                         <div class="mb-4">
                             <label class="form-label premium-muted small fw-bold text-uppercase"
                                 style="letter-spacing:.5px;">
-                                Contraseña
+                                <?= t('modal_login_password') ?>
                             </label>
                             <div class="input-group">
                                 <input type="password" id="modal-password" name="password"
                                     class="form-control form-control-lg premium-input shadow-none rounded-start-3"
                                     placeholder="••••••••" required>
                                 <button class="btn btn-outline-secondary rounded-end-3" type="button"
-                                    id="toggle-modal-password" title="Mostrar/ocultar contraseña">
+                                    id="toggle-modal-password" title="<?= t('modal_login_mostrar') ?>">
                                     <i class="bi bi-eye" id="eye-icon-modal"></i>
                                 </button>
                             </div>
@@ -455,18 +521,19 @@ $resultado = $conn->query("SELECT * FROM productos ORDER BY id DESC LIMIT $produ
 
                         <button type="submit" name="login"
                             class="btn btn-primary w-100 btn-lg rounded-pill fw-bold shadow-sm"
-                            style="background-color: #3b82f6; border: none;">
-                            <i class="bi bi-box-arrow-in-right me-2"></i>Iniciar Sesión
+                            style="background-color:#3b82f6;border:none;">
+                            <i class="bi bi-box-arrow-in-right me-2"></i>
+                            <?= t('modal_login_btn') ?>
                         </button>
                     </form>
 
-                    <hr class="my-3" style="border-color: var(--border-color);">
+                    <hr class="my-3" style="border-color:var(--border-color);">
 
                     <div class="text-center">
                         <span class="premium-muted small">
-                            ¿No tienes cuenta?
+                            <?= t('modal_login_sin_cuenta') ?>
                             <a href="registro.php" class="text-primary text-decoration-none fw-bold">
-                                Regístrate gratis
+                                <?= t('modal_login_registro') ?>
                             </a>
                         </span>
                     </div>
@@ -478,12 +545,16 @@ $resultado = $conn->query("SELECT * FROM productos ORDER BY id DESC LIMIT $produ
 
 
     <!-- Toast de confirmación del carrito -->
-    <div class="toast-container position-fixed bottom-0 end-0 p-4" style="z-index: 1050;">
+    <div class="toast-container position-fixed bottom-0 end-0 p-4" style="z-index:1050;">
         <div id="cartToast" class="toast align-items-center text-white bg-success border-0 shadow-lg" role="alert"
             aria-live="assertive" aria-atomic="true" data-bs-delay="3000">
             <div class="d-flex">
                 <div class="toast-body fw-bold fs-6">
-                    <i class="bi bi-check-circle-fill me-2"></i> ¡Añadido al carrito con éxito!
+                    <i class="bi bi-check-circle-fill me-2"></i>
+                    <!-- El texto del toast se inyecta desde JS para que también sea traducido -->
+                    <span id="toast-text">
+                        <?= t('toast_añadido') ?>
+                    </span>
                 </div>
                 <button type="button" class="btn-close btn-close-white me-3 m-auto" data-bs-dismiss="toast"
                     aria-label="Close"></button>
@@ -504,13 +575,12 @@ $resultado = $conn->query("SELECT * FROM productos ORDER BY id DESC LIMIT $produ
 
         document.addEventListener("DOMContentLoaded", function () {
 
-            // --- Abrir modal automáticamente si login.php devolvió ?error=1 ---
-            const params = new URLSearchParams(window.location.search);
-            if (params.get('error') === '1') {
+            // Abrir modal si login.php devolvió ?error=1
+            if (new URLSearchParams(window.location.search).get('error') === '1') {
                 new bootstrap.Modal(document.getElementById('loginModal')).show();
             }
 
-            // --- Botón ojo: mostrar/ocultar contraseña en el modal ---
+            // Botón ojo del modal
             const toggleBtn = document.getElementById('toggle-modal-password');
             const passInput = document.getElementById('modal-password');
             const eyeIcon = document.getElementById('eye-icon-modal');
@@ -526,15 +596,17 @@ $resultado = $conn->query("SELECT * FROM productos ORDER BY id DESC LIMIT $produ
                 });
             }
 
-            // --- Carrito AJAX ---
+            // Carrito AJAX — los textos del botón vienen de data-attributes para ser traducibles
             document.querySelectorAll('.form-add-cart').forEach(form => {
                 form.addEventListener('submit', function (e) {
                     e.preventDefault();
                     const formData = new FormData(this);
                     const btn = this.querySelector('.btn-submit-cart');
+                    const textoOriginal = btn.getAttribute('data-texto-original');
+                    const textoCargando = btn.getAttribute('data-texto-cargando');
                     const originalHtml = btn.innerHTML;
 
-                    btn.innerHTML = '<span class="spinner-border spinner-border-sm me-2" role="status"></span>Añadiendo...';
+                    btn.innerHTML = '<span class="spinner-border spinner-border-sm me-2" role="status"></span>' + textoCargando;
                     btn.disabled = true;
 
                     fetch('index.php', {
@@ -562,7 +634,7 @@ $resultado = $conn->query("SELECT * FROM productos ORDER BY id DESC LIMIT $produ
                 });
             });
 
-    // --- Borrado AJAX de productos (solo admin) ---
+    // Borrado AJAX de productos (solo admin)
     <?php if (isset($_SESSION['rol']) && $_SESSION['rol'] === 'admin'): ?>
                     document.querySelectorAll('.btn-delete-product').forEach(btn => {
                         btn.addEventListener('click', function (e) {
