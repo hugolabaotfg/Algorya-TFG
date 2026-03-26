@@ -1,0 +1,94 @@
+<?php
+// =============================================================================
+// ALGORYA - includes/admin_navbar.php
+// Navbar compartido para todas las páginas del panel de administración.
+// Incluir con: <?php include 'includes/admin_navbar.php'; ?>
+// =============================================================================
+
+$pagina_actual_admin = basename($_SERVER['PHP_SELF']);
+
+$nav_items = [
+    ['admin_pedidos.php',      'bi-receipt',        'Pedidos'],
+    ['admin_usuarios.php',     'bi-people',         'Clientes'],
+    ['admin_estadisticas.php', 'bi-bar-chart-fill', 'Dashboard'],
+    ['admin_mailing.php',      'bi-envelope-at',    'Mailing'],
+];
+?>
+<nav class="navbar sticky-top shadow-sm">
+    <div class="container-fluid px-4">
+
+        <!-- MARCA -->
+        <a class="navbar-brand fw-black text-decoration-none d-flex align-items-center gap-2" href="admin_estadisticas.php">
+            <div class="rounded-2 d-flex align-items-center justify-content-center"
+                 style="width:28px;height:28px;background:linear-gradient(135deg,#3b82f6,#6366f1);">
+                <i class="bi bi-box-seam-fill text-white" style="font-size:.75rem;"></i>
+            </div>
+            <span class="text-primary" style="font-size:1.1rem;letter-spacing:-.04em;">Algorya</span>
+            <span class="premium-muted" style="font-size:.65rem;font-weight:500;letter-spacing:.04em;text-transform:uppercase;margin-left:-2px;">Admin</span>
+        </a>
+
+        <!-- LINKS PRINCIPALES (solo escritorio) -->
+        <div class="d-none d-lg-flex align-items-center gap-1">
+            <?php foreach ($nav_items as [$href, $icon, $label]): ?>
+            <a href="<?= $href ?>"
+               class="admin-nav-link <?= $pagina_actual_admin === $href ? 'active' : '' ?>">
+                <i class="bi <?= $icon ?>"></i><?= $label ?>
+            </a>
+            <?php endforeach; ?>
+        </div>
+
+        <!-- ACCIONES DERECHA -->
+        <div class="d-flex align-items-center gap-2">
+
+            <!-- Acceso rápido a la tienda -->
+            <a href="index.php" class="btn btn-sm btn-outline-secondary rounded-pill px-3 d-none d-md-inline-flex align-items-center gap-1 fw-semibold" style="font-size:.78rem;">
+                <i class="bi bi-arrow-left"></i>Tienda
+            </a>
+
+            <!-- Menú móvil (visible solo en < lg) -->
+            <div class="dropdown d-lg-none">
+                <button class="btn btn-primary btn-sm rounded-pill px-3 fw-bold dropdown-toggle" type="button" data-bs-toggle="dropdown" style="font-size:.78rem;">
+                    <i class="bi bi-grid-fill me-1"></i>Menú
+                </button>
+                <ul class="dropdown-menu dropdown-menu-end">
+                    <li><h6 class="dropdown-header">Panel Admin</h6></li>
+                    <?php foreach ($nav_items as [$href, $icon, $label]): ?>
+                    <li>
+                        <a class="dropdown-item <?= $pagina_actual_admin===$href?'fw-bold':'' ?>" href="<?= $href ?>">
+                            <i class="bi <?= $icon ?> me-2 text-primary"></i><?= $label ?>
+                        </a>
+                    </li>
+                    <?php endforeach; ?>
+                    <li><hr class="dropdown-divider"></li>
+                    <li><a class="dropdown-item" href="add_product.php"><i class="bi bi-plus-circle me-2 text-success"></i>Nuevo producto</a></li>
+                    <li><a class="dropdown-item" href="index.php"><i class="bi bi-arrow-left me-2"></i>Ver tienda</a></li>
+                </ul>
+            </div>
+
+            <!-- Toggle modo oscuro -->
+            <div id="darkModeToggle" title="Alternar modo oscuro">
+                <i class="bi bi-moon-stars-fill" style="font-size:.9rem;"></i>
+            </div>
+
+            <!-- Avatar admin + logout -->
+            <div class="dropdown">
+                <button class="btn btn-sm rounded-circle border-0 p-0 d-flex align-items-center justify-content-center fw-black"
+                        style="width:34px;height:34px;background:linear-gradient(135deg,#3b82f6,#6366f1);color:white;font-family:'Outfit',sans-serif;font-size:.85rem;"
+                        data-bs-toggle="dropdown">
+                    <?= strtoupper(mb_substr($_SESSION['nombre'] ?? 'A', 0, 1, 'UTF-8')) ?>
+                </button>
+                <ul class="dropdown-menu dropdown-menu-end" style="min-width:160px;">
+                    <li>
+                        <div class="px-3 py-2">
+                            <div class="premium-text fw-semibold" style="font-size:.85rem;"><?= htmlspecialchars($_SESSION['nombre'] ?? 'Admin') ?></div>
+                            <div class="premium-muted" style="font-size:.72rem;">Administrador</div>
+                        </div>
+                    </li>
+                    <li><hr class="dropdown-divider"></li>
+                    <li><a class="dropdown-item text-danger fw-semibold" href="logout.php"><i class="bi bi-box-arrow-right me-2"></i>Cerrar sesión</a></li>
+                </ul>
+            </div>
+        </div>
+
+    </div>
+</nav>

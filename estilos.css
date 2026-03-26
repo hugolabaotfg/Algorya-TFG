@@ -1,96 +1,204 @@
-/* === PALETA DE COLORES PREMIUM === */
+/* =============================================================================
+   ALGORYA — estilos.css
+   Sistema de diseño unificado para toda la plataforma (tienda + admin).
+
+   NOTA ORGANIZACIÓN: Este archivo se sirve desde la raíz del proyecto
+   (/var/www/tfg/estilos.css) porque todos los PHP están también en la raíz.
+   Si en el futuro se migra a una estructura MVC con subcarpetas, moverlo a
+   /assets/css/estilos.css y actualizar las rutas en todos los archivos PHP.
+============================================================================= */
+
+/* === GOOGLE FONTS — Importación correcta (faltaba en la versión anterior) === */
+@import url('https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800;900&family=DM+Sans:ital,wght@0,300;0,400;0,500;0,600;1,400&display=swap');
+
+/* =============================================================================
+   VARIABLES — MODO CLARO
+   Paleta profesional basada en slate/zinc con accent azul eléctrico
+============================================================================= */
 :root {
-    --bg-body: #f8fafc;
-    --bg-card: #ffffff;
-    --bg-nav: rgba(255, 255, 255, 0.85);
-    --text-main: #0f172a;
-    --text-muted: #64748b;
-    --border-color: #e2e8f0;
-    --hero-bg: linear-gradient(135deg, #f1f5f9 0%, #e2e8f0 100%);
-    --card-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -1px rgba(0, 0, 0, 0.03);
-    --hover-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
-    --btn-add-bg: #0f172a;
-    --btn-add-text: #ffffff;
-    --img-opacity: 1;
+    /* Fondos */
+    --bg-body:          #f4f6f9;
+    --bg-card:          #ffffff;
+    --bg-nav:           rgba(255, 255, 255, 0.92);
+    --hover-bg:         #f8fafc;
 
-    /* Nuevas variables para Formularios y Modales */
-    --input-bg: #f1f5f9;
-    --input-border: #cbd5e1;
-    --input-focus: #3b82f6;
+    /* Tipografía */
+    --text-main:        #0f172a;
+    --text-muted:       #64748b;
+    --text-subtle:      #94a3b8;
+
+    /* Bordes y sombras */
+    --border-color:     #e2e8f0;
+    --border-strong:    #cbd5e1;
+    --card-shadow:      0 1px 3px rgba(0,0,0,0.06), 0 4px 12px rgba(0,0,0,0.04);
+    --hover-shadow:     0 8px 30px rgba(0,0,0,0.10), 0 2px 8px rgba(0,0,0,0.06);
+    --nav-shadow:       0 1px 0 var(--border-color);
+
+    /* Fondos especiales */
+    --hero-bg:          linear-gradient(160deg, #f1f5f9 0%, #e8edf5 100%);
+
+    /* Accent */
+    --accent:           #3b82f6;
+    --accent-dark:      #2563eb;
+    --accent-subtle:    rgba(59, 130, 246, 0.08);
+
+    /* Botones */
+    --btn-add-bg:       #0f172a;
+    --btn-add-text:     #ffffff;
+    --img-opacity:      1;
+
+    /* Formularios */
+    --input-bg:         #f8fafc;
+    --input-border:     #e2e8f0;
+    --input-focus:      #3b82f6;
+
+    /* Admin sidebar accent */
+    --admin-accent:     #6366f1;
 }
 
+/* =============================================================================
+   VARIABLES — MODO OSCURO
+   Una sola declaración (la versión anterior tenía dos que se sobreescribían)
+============================================================================= */
 [data-bs-theme="dark"] {
-    --bg-body: #09090b;
-    --bg-card: #18181b;
-    --bg-nav: rgba(9, 9, 11, 0.85);
-    --text-main: #fafafa;
-    --text-muted: #a1a1aa;
-    --border-color: #27272a;
-    --hero-bg: radial-gradient(circle at 50% 0%, #18181b 0%, #09090b 100%);
-    --card-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.5);
-    --hover-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.7);
-    --btn-add-bg: #fafafa;
-    --btn-add-text: #09090b;
-    --img-opacity: 0.85;
+    /* Fondos */
+    --bg-body:          #0d1117;
+    --bg-card:          #161b22;
+    --bg-nav:           rgba(13, 17, 23, 0.95);
+    --hover-bg:         #1c2230;
 
-    /* Nuevas variables para Formularios y Modales en Oscuro */
-    --input-bg: #09090b;
-    --input-border: #3f3f46;
-    --input-focus: #3b82f6;
+    /* Tipografía */
+    --text-main:        #e6edf3;
+    --text-muted:       #8b949e;
+    --text-subtle:      #6e7681;
+
+    /* Bordes y sombras */
+    --border-color:     #21262d;
+    --border-strong:    #30363d;
+    --card-shadow:      0 1px 3px rgba(0,0,0,0.4), 0 4px 12px rgba(0,0,0,0.3);
+    --hover-shadow:     0 8px 30px rgba(0,0,0,0.6), 0 2px 8px rgba(0,0,0,0.4);
+    --nav-shadow:       0 1px 0 var(--border-color);
+
+    /* Fondos especiales */
+    --hero-bg:          radial-gradient(ellipse at 50% 0%, #161b22 0%, #0d1117 70%);
+
+    /* Accent */
+    --accent:           #58a6ff;
+    --accent-dark:      #388bfd;
+    --accent-subtle:    rgba(88, 166, 255, 0.10);
+
+    /* Botones */
+    --btn-add-bg:       #58a6ff;
+    --btn-add-text:     #0d1117;
+    --img-opacity:      0.88;
+
+    /* Formularios */
+    --input-bg:         #0d1117;
+    --input-border:     #30363d;
+    --input-focus:      #58a6ff;
+
+    --admin-accent:     #818cf8;
 }
 
-/* === ESTILOS BASE === */
+/* =============================================================================
+   TIPOGRAFÍA BASE
+   Outfit para títulos y displays (carácter fuerte)
+   DM Sans para cuerpo de texto (legibilidad superior a Inter)
+============================================================================= */
 body {
     background-color: var(--bg-body) !important;
     color: var(--text-main);
-    font-family: 'Inter', sans-serif;
-    transition: background-color 0.3s ease, color 0.3s ease;
+    font-family: 'DM Sans', system-ui, -apple-system, sans-serif;
+    font-size: 15px;
+    line-height: 1.6;
+    transition: background-color 0.25s ease, color 0.25s ease;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
 }
 
-::-webkit-scrollbar {
-    width: 8px;
+h1, h2, h3, h4, h5, h6,
+.fw-bold, .fw-semibold, .fw-black,
+.navbar-brand, .card-title {
+    font-family: 'Outfit', system-ui, -apple-system, sans-serif;
+    letter-spacing: -0.02em;
 }
 
-::-webkit-scrollbar-track {
-    background: var(--bg-body);
-}
+/* =============================================================================
+   SCROLLBAR PERSONALIZADA
+============================================================================= */
+::-webkit-scrollbar { width: 7px; height: 7px; }
+::-webkit-scrollbar-track { background: var(--bg-body); }
+::-webkit-scrollbar-thumb { background: var(--border-strong); border-radius: 10px; }
+::-webkit-scrollbar-thumb:hover { background: var(--text-muted); }
 
-::-webkit-scrollbar-thumb {
-    background: var(--border-color);
-    border-radius: 10px;
-}
-
-::-webkit-scrollbar-thumb:hover {
-    background: var(--text-muted);
-}
-
-/* === COMPONENTES === */
+/* =============================================================================
+   NAVBAR
+============================================================================= */
 .navbar {
     background: var(--bg-nav) !important;
-    backdrop-filter: blur(12px);
+    backdrop-filter: blur(16px);
+    -webkit-backdrop-filter: blur(16px);
     border-bottom: 1px solid var(--border-color);
-    transition: all 0.3s ease;
+    transition: all 0.25s ease;
+    padding-top: 0.6rem;
+    padding-bottom: 0.6rem;
 }
 
+.navbar-brand {
+    font-size: 1.3rem !important;
+    letter-spacing: -0.04em;
+}
+
+/* =============================================================================
+   HERO SECTION
+============================================================================= */
 .hero-section {
     background: var(--hero-bg);
-    padding: 80px 0;
+    padding: 88px 0 72px;
     text-align: center;
     border-bottom: 1px solid var(--border-color);
-    transition: background 0.3s ease, border-color 0.3s ease;
+    position: relative;
+    overflow: hidden;
+    transition: background 0.3s ease;
 }
 
+.hero-section::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: radial-gradient(ellipse 80% 50% at 50% 0%, rgba(59,130,246,0.06) 0%, transparent 100%);
+    pointer-events: none;
+}
+
+.hero-section h1 {
+    font-size: clamp(2rem, 5vw, 3.5rem);
+    font-weight: 800;
+    letter-spacing: -0.04em;
+    line-height: 1.1;
+}
+
+/* =============================================================================
+   CARDS
+============================================================================= */
 .premium-card {
     background-color: var(--bg-card);
-    border: 1px solid var(--border-color);
+    border: 1px solid var(--border-color) !important;
     box-shadow: var(--card-shadow);
-    transition: transform 0.3s ease, box-shadow 0.3s ease, background-color 0.3s ease, border-color 0.3s ease;
+    transition: transform 0.25s ease, box-shadow 0.25s ease,
+                background-color 0.25s ease, border-color 0.25s ease;
 }
 
-.premium-card:hover {
-    transform: translateY(-8px);
+/* Cards del catálogo con hover elevado */
+.product-card.premium-card:hover {
+    transform: translateY(-6px);
     box-shadow: var(--hover-shadow);
-    border-color: #3b82f6;
+    border-color: var(--accent) !important;
+}
+
+/* Cards del admin sin hover de elevación (son estáticas) */
+.admin-card.premium-card:hover {
+    transform: none;
+    box-shadow: var(--card-shadow);
 }
 
 .premium-img-wrapper {
@@ -98,28 +206,29 @@ body {
     border-bottom: 1px solid var(--border-color);
     padding: 2rem;
     opacity: var(--img-opacity);
-    transition: opacity 0.3s ease, border-color 0.3s ease;
+    transition: opacity 0.25s ease;
 }
 
-.premium-card:hover .premium-img-wrapper {
-    opacity: 1;
-}
+.premium-card:hover .premium-img-wrapper { opacity: 1; }
 
-.premium-text {
-    color: var(--text-main) !important;
-    transition: color 0.3s ease;
-}
+/* =============================================================================
+   TIPOGRAFÍA DE UTILIDAD
+============================================================================= */
+.premium-text  { color: var(--text-main)  !important; transition: color 0.25s ease; }
+.premium-muted { color: var(--text-muted) !important; transition: color 0.25s ease; }
+.premium-subtle{ color: var(--text-subtle)!important; transition: color 0.25s ease; }
 
-.premium-muted {
-    color: var(--text-muted) !important;
-    transition: color 0.3s ease;
-}
-
+/* =============================================================================
+   BOTONES
+============================================================================= */
 .btn-premium-add {
     background-color: var(--btn-add-bg);
     color: var(--btn-add-text);
-    transition: all 0.2s ease;
     border: none;
+    font-family: 'Outfit', sans-serif;
+    font-weight: 600;
+    letter-spacing: -0.01em;
+    transition: all 0.2s ease;
 }
 
 .btn-premium-add:hover {
@@ -128,10 +237,19 @@ body {
     color: var(--btn-add-text);
 }
 
+.btn-primary {
+    font-family: 'Outfit', sans-serif;
+    font-weight: 600;
+    letter-spacing: -0.01em;
+}
+
+/* =============================================================================
+   TOGGLE MODO OSCURO
+============================================================================= */
 #darkModeToggle {
     cursor: pointer;
-    width: 40px;
-    height: 40px;
+    width: 38px;
+    height: 38px;
     display: flex;
     align-items: center;
     justify-content: center;
@@ -140,55 +258,357 @@ body {
     border: 1px solid var(--border-color);
     transition: all 0.2s ease;
     color: var(--text-main);
+    flex-shrink: 0;
 }
 
-#darkModeToggle:hover {
-    background: var(--border-color);
+#darkModeToggle:hover { background: var(--hover-bg); border-color: var(--border-strong); }
+
+/* =============================================================================
+   FORMULARIOS E INPUTS
+============================================================================= */
+.premium-input,
+.premium-input.form-control,
+.premium-input.form-select {
+    background-color: var(--input-bg) !important;
+    border: 1px solid var(--input-border) !important;
+    color: var(--text-main) !important;
+    font-family: 'DM Sans', sans-serif;
+    transition: all 0.2s ease;
+    border-radius: 8px;
 }
 
-/* === FORMULARIOS Y MODALES PREMIUM === */
+.premium-input::placeholder { color: var(--text-subtle) !important; }
+
+.premium-input:focus,
+.premium-input.form-control:focus,
+.premium-input.form-select:focus {
+    background-color: var(--bg-body) !important;
+    border-color: var(--input-focus) !important;
+    box-shadow: 0 0 0 3px rgba(59,130,246,0.15) !important;
+    color: var(--text-main) !important;
+}
+
+.premium-input option {
+    background-color: var(--bg-card);
+    color: var(--text-main);
+}
+
+/* =============================================================================
+   MODALES
+============================================================================= */
 .premium-modal {
     background-color: var(--bg-card) !important;
     border: 1px solid var(--border-color);
     box-shadow: var(--hover-shadow);
 }
 
-.premium-input {
-    background-color: var(--input-bg) !important;
-    border: 1px solid var(--input-border) !important;
-    color: var(--text-main) !important;
-    transition: all 0.3s ease;
-}
-
-.premium-input:focus {
-    background-color: var(--bg-body) !important;
-    border-color: var(--input-focus) !important;
-    box-shadow: 0 0 0 0.25rem rgba(59, 130, 246, 0.25) !important;
+.modal-content {
+    background-color: var(--bg-card) !important;
+    border: 1px solid var(--border-color) !important;
     color: var(--text-main) !important;
 }
 
-[data-bs-theme="dark"] {
-    --bg-body: #111827;
-    /* Gris antracita elegante de fondo */
-    --bg-card: #1f2937;
-    /* Tarjetas un tono más claras para dar profundidad */
-    --bg-nav: #111827;
-    /* Barra superior integrada */
-    --text-main: #f9fafb;
-    /* Blanco roto para no cansar la vista */
-    --text-muted: #9ca3af;
-    --border-color: #374151;
-    /* Bordes muy sutiles */
-    --hero-bg: radial-gradient(circle at 50% 0%, #1f2937 0%, #111827 100%);
-    --card-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.4);
-    --hover-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.7);
-    --btn-add-bg: #3b82f6;
-    /* El botón de añadir en azul eléctrico destaca genial aquí */
-    --btn-add-text: #ffffff;
-    --img-opacity: 0.9;
+.modal-header, .modal-footer {
+    border-color: var(--border-color) !important;
+}
 
-    /* Inputs Premium para el Modal y formularios */
-    --input-bg: #1f2937;
-    --input-border: #4b5563;
-    --input-focus: #3b82f6;
+/* =============================================================================
+   PAGINACIÓN
+============================================================================= */
+.premium-pagination {
+    background-color: var(--bg-card) !important;
+    border: 1px solid var(--border-color) !important;
+    color: var(--text-main) !important;
+    font-family: 'Outfit', sans-serif;
+    font-weight: 600;
+    transition: all 0.15s ease;
+}
+
+.premium-pagination:hover {
+    background-color: var(--accent-subtle) !important;
+    border-color: var(--accent) !important;
+    color: var(--accent) !important;
+}
+
+.page-item.active .premium-pagination {
+    background-color: var(--accent) !important;
+    border-color: var(--accent) !important;
+    color: #ffffff !important;
+}
+
+.page-item.disabled .premium-pagination { opacity: 0.35; }
+
+/* =============================================================================
+   TABLAS ADMIN
+============================================================================= */
+.table-admin {
+    --bs-table-bg: transparent;
+    --bs-table-color: var(--text-main);
+}
+
+.table-admin th {
+    font-family: 'Outfit', sans-serif;
+    font-size: 0.68rem;
+    font-weight: 700;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    color: var(--text-muted) !important;
+    border-bottom: 2px solid var(--border-color) !important;
+    border-top: none !important;
+    padding-bottom: 0.85rem;
+    white-space: nowrap;
+}
+
+.table-admin td {
+    border-bottom: 1px solid var(--border-color) !important;
+    border-top: none !important;
+    vertical-align: middle;
+    padding: 0.9rem 0.75rem;
+}
+
+.table-admin tbody tr {
+    transition: background-color 0.15s ease;
+    cursor: pointer;
+}
+
+.table-admin tbody tr:hover {
+    background-color: var(--hover-bg) !important;
+}
+
+.table-admin tbody tr:last-child td { border-bottom: none !important; }
+
+/* =============================================================================
+   BADGES DE ESTADO (pedidos, productos)
+============================================================================= */
+.badge-estado {
+    font-family: 'Outfit', sans-serif;
+    font-weight: 600;
+    font-size: 0.72rem;
+    letter-spacing: 0.02em;
+    padding: 0.35em 0.85em;
+    border-radius: 999px;
+}
+
+.badge-pendiente  { background: rgba(245,158,11,0.12) !important; color: #d97706 !important; border: 1px solid rgba(245,158,11,0.25); }
+.badge-enviado    { background: rgba(59,130,246,0.12) !important; color: #2563eb !important; border: 1px solid rgba(59,130,246,0.25); }
+.badge-entregado  { background: rgba(34,197,94,0.12)  !important; color: #16a34a !important; border: 1px solid rgba(34,197,94,0.25); }
+.badge-cancelado  { background: rgba(239,68,68,0.12)  !important; color: #dc2626 !important; border: 1px solid rgba(239,68,68,0.25); }
+.badge-destacado  { background: rgba(249,115,22,0.12) !important; color: #ea580c !important; border: 1px solid rgba(249,115,22,0.25); }
+
+/* =============================================================================
+   KPI CARDS (Dashboard admin)
+============================================================================= */
+.kpi-card {
+    background-color: var(--bg-card);
+    border: 1px solid var(--border-color) !important;
+    border-radius: 16px;
+    padding: 1.25rem 1.5rem;
+    box-shadow: var(--card-shadow);
+    position: relative;
+    overflow: hidden;
+    transition: box-shadow 0.2s ease, transform 0.2s ease;
+}
+
+.kpi-card:hover { box-shadow: var(--hover-shadow); transform: translateY(-2px); }
+
+.kpi-card::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0;
+    width: 4px; height: 100%;
+    border-radius: 16px 0 0 16px;
+    background: var(--kpi-color, var(--accent));
+}
+
+.kpi-card .kpi-icon {
+    width: 44px; height: 44px;
+    border-radius: 12px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 1.2rem;
+    background: var(--kpi-color-subtle, var(--accent-subtle));
+    color: var(--kpi-color, var(--accent));
+    flex-shrink: 0;
+}
+
+.kpi-card .kpi-value {
+    font-family: 'Outfit', sans-serif;
+    font-size: 1.9rem;
+    font-weight: 800;
+    letter-spacing: -0.04em;
+    color: var(--text-main);
+    line-height: 1;
+}
+
+.kpi-card .kpi-label {
+    font-size: 0.72rem;
+    font-weight: 700;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    color: var(--text-muted);
+}
+
+.kpi-card .kpi-sub {
+    font-size: 0.78rem;
+    color: var(--text-muted);
+    margin-top: 0.15rem;
+}
+
+/* =============================================================================
+   ADMIN NAVBAR ADICIONAL (indicador de sección activa)
+============================================================================= */
+.admin-nav-link {
+    font-family: 'Outfit', sans-serif;
+    font-weight: 500;
+    font-size: 0.875rem;
+    padding: 0.4rem 0.75rem;
+    border-radius: 8px;
+    color: var(--text-muted);
+    text-decoration: none;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    transition: all 0.15s ease;
+}
+
+.admin-nav-link:hover {
+    background: var(--hover-bg);
+    color: var(--text-main);
+}
+
+.admin-nav-link.active {
+    background: var(--accent-subtle);
+    color: var(--accent);
+    font-weight: 600;
+}
+
+/* =============================================================================
+   DROPDOWN ADMIN
+============================================================================= */
+.dropdown-menu {
+    background-color: var(--bg-card) !important;
+    border: 1px solid var(--border-color) !important;
+    border-radius: 12px !important;
+    box-shadow: var(--hover-shadow) !important;
+    padding: 0.5rem !important;
+}
+
+.dropdown-item {
+    border-radius: 8px !important;
+    color: var(--text-main) !important;
+    font-family: 'DM Sans', sans-serif;
+    font-size: 0.875rem;
+    padding: 0.45rem 0.75rem !important;
+    transition: background-color 0.15s ease !important;
+}
+
+.dropdown-item:hover {
+    background-color: var(--hover-bg) !important;
+    color: var(--text-main) !important;
+}
+
+.dropdown-header {
+    color: var(--text-subtle) !important;
+    font-size: 0.65rem !important;
+    letter-spacing: 0.08em !important;
+    font-family: 'Outfit', sans-serif !important;
+    font-weight: 700 !important;
+    padding: 0.5rem 0.75rem 0.25rem !important;
+}
+
+.dropdown-divider { border-color: var(--border-color) !important; margin: 0.35rem 0 !important; }
+
+/* =============================================================================
+   ALERTS
+============================================================================= */
+.alert {
+    font-family: 'DM Sans', sans-serif;
+    border-radius: 10px !important;
+    font-size: 0.9rem;
+}
+
+/* =============================================================================
+   FOOTER
+============================================================================= */
+footer {
+    border-top: 1px solid var(--border-color) !important;
+    font-family: 'DM Sans', sans-serif;
+    font-size: 0.8rem;
+}
+
+/* =============================================================================
+   SELECTOR DE IDIOMA (navbar)
+============================================================================= */
+.lang-btn {
+    font-family: 'Outfit', sans-serif;
+    font-size: 0.75rem;
+    font-weight: 700;
+    letter-spacing: 0.04em;
+    padding: 0.3rem 0.7rem;
+    border-radius: 999px;
+    border: 1px solid var(--border-color);
+    background: transparent;
+    color: var(--text-muted);
+    transition: all 0.15s ease;
+}
+
+.lang-btn:hover, .lang-btn.active {
+    background: var(--accent-subtle);
+    border-color: var(--accent);
+    color: var(--accent);
+}
+
+/* =============================================================================
+   TOAST NOTIFICACIONES
+============================================================================= */
+.toast {
+    font-family: 'DM Sans', sans-serif;
+    border-radius: 12px !important;
+    font-size: 0.875rem;
+}
+
+/* =============================================================================
+   UTILIDADES EXTRA
+============================================================================= */
+
+/* Separador con estilo */
+.divider-premium {
+    border: none;
+    height: 1px;
+    background: var(--border-color);
+    margin: 1.5rem 0;
+}
+
+/* Skeleton loader para cuando los datos tardan */
+.skeleton {
+    background: linear-gradient(90deg,
+        var(--border-color) 25%,
+        var(--hover-bg) 50%,
+        var(--border-color) 75%);
+    background-size: 200% 100%;
+    animation: skeleton-loading 1.4s ease infinite;
+    border-radius: 6px;
+}
+
+@keyframes skeleton-loading {
+    0%   { background-position: 200% 0; }
+    100% { background-position: -200% 0; }
+}
+
+/* Indicador de stock bajo FOMO */
+.stock-critico {
+    animation: pulse-warning 2s ease infinite;
+}
+
+@keyframes pulse-warning {
+    0%, 100% { opacity: 1; }
+    50%       { opacity: 0.6; }
+}
+
+/* =============================================================================
+   RESPONSIVE AJUSTES
+============================================================================= */
+@media (max-width: 768px) {
+    .hero-section { padding: 56px 0 48px; }
+    .kpi-card .kpi-value { font-size: 1.5rem; }
+    .table-admin th, .table-admin td { font-size: 0.8rem; padding: 0.65rem 0.5rem; }
 }
