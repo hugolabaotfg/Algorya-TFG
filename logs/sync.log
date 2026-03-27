@@ -1,0 +1,7 @@
+[2026-03-27 03:00:01] ============================================================
+[2026-03-27 03:00:01] ALGORYA - Inicio de sincronizacion de catalogo
+[2026-03-27 03:00:01] ============================================================
+[2026-03-27 03:00:01] Limpiando productos de API anteriores...
+[2026-03-27 03:00:01]   -> Registros BD eliminados : 96
+[2026-03-27 03:00:01]   -> Imagenes fisicas borradas: 96
+[2026-03-27 03:00:01] Conectando con FakeStoreAPI...

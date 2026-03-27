@@ -75,13 +75,18 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['actualizar_estado']))
             $mensaje     = "Pedido #" . str_pad($pedido_id, 5, '0', STR_PAD_LEFT) . " actualizado a «{$nuevo_estado}».";
             $tipo_alerta = "success";
 
-            // EMAIL AL CLIENTE — Descomentar cuando el servidor esté en producción:
-            // $stmt_mail = $conn->prepare("SELECT u.email, u.nombre FROM pedidos p JOIN usuarios u ON p.usuario_id=u.id WHERE p.id=?");
-            // $stmt_mail->bind_param("i", $pedido_id);
-            // $stmt_mail->execute();
-            // $mail_data = $stmt_mail->get_result()->fetch_assoc();
-            // $stmt_mail->close();
-            // if ($mail_data) enviar_email_estado($mail_data['email'], $mail_data['nombre'], $pedido_id, $nuevo_estado);
+            // EMAIL AL CLIENTE — Activo via Brevo (PHPMailer)
+            $stmt_mail = $conn->prepare(
+                "SELECT u.email, u.nombre FROM pedidos p JOIN usuarios u ON p.usuario_id=u.id WHERE p.id=?"
+            );
+            $stmt_mail->bind_param("i", $pedido_id);
+            $stmt_mail->execute();
+            $mail_data = $stmt_mail->get_result()->fetch_assoc();
+            $stmt_mail->close();
+            if ($mail_data) {
+                require_once __DIR__ . '/includes/mailer.php';
+                mail_estado_pedido($mail_data['email'], $mail_data['nombre'], $pedido_id, $nuevo_estado);
+            }
         } else {
             $mensaje = "Error al actualizar."; $tipo_alerta = "danger";
         }

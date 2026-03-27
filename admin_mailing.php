@@ -45,7 +45,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['enviar'])) {
         $enviados = 0;
         $errores  = 0;
 
-        // Construir lista de destinatarios
         if ($dest === 'todos') {
             $res = $conn->query("SELECT email, nombre FROM usuarios WHERE rol = 'cliente'");
             $destinatarios = $res->fetch_all(MYSQLI_ASSOC);
@@ -53,17 +52,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['enviar'])) {
             $destinatarios = [['email' => $dest, 'nombre' => $nombre_dest]];
         }
 
-        $cabeceras = "From: hola@algorya.store\r\n" .
-                     "Reply-To: hola@algorya.store\r\n" .
-                     "Content-Type: text/plain; charset=UTF-8\r\n" .
-                     "X-Mailer: PHP/" . phpversion();
+        require_once __DIR__ . '/includes/mailer.php';
 
         foreach ($destinatarios as $d) {
-            $cuerpo  = "Hola " . $d['nombre'] . ",\n\n";
-            $cuerpo .= $msg . "\n\n";
-            $cuerpo .= "---\nEl equipo de Algorya\nhola@algorya.store\nhttps://algorya.store";
-
-            if (@mail($d['email'], $asunto, $cuerpo, $cabeceras)) {
+            if (algorya_mail($d['email'], $d['nombre'], $asunto, $msg)) {
                 $enviados++;
             } else {
                 $errores++;

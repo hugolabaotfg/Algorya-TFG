@@ -1,0 +1,12 @@
+[2026-03-27 03:00:01] ============================================================
+[2026-03-27 03:00:01] ALGORYA - Inicio de sincronizacion de catalogo
+[2026-03-27 03:00:01] ============================================================
+[2026-03-27 03:00:01] Limpiando productos de API anteriores...
+[2026-03-27 03:00:01]   -> Registros BD eliminados : 96
+[2026-03-27 03:00:01]   -> Imagenes fisicas borradas: 96
+[2026-03-27 03:00:01] Conectando con FakeStoreAPI...
+PHP Warning:  foreach() argument must be of type array|object, null given in /var/www/tfg/sync_catalogo.php on line 266
+PHP Fatal error:  Uncaught TypeError: count(): Argument #1 ($value) must be of type Countable|array, null given in /var/www/tfg/sync_catalogo.php:278
+Stack trace:
+#0 {main}
+  thrown in /var/www/tfg/sync_catalogo.php on line 278
