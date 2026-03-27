@@ -21,14 +21,14 @@ if (!isset($_SESSION['user_id'])) {
     exit();
 }
 
-$uid = (int) $_SESSION['user_id'];
+$uid            = (int) $_SESSION['user_id'];
 $nombre_cliente = htmlspecialchars($_SESSION['nombre']);
 
 // ─────────────────────────────────────────────────────────────────────────────
 // PASO 1: Validar el session_id de Stripe contra el guardado en $_SESSION
 // Si no coinciden -> posible acceso directo fraudulento -> redirigir
 // ─────────────────────────────────────────────────────────────────────────────
-$session_id_url = $_GET['session_id'] ?? '';
+$session_id_url    = $_GET['session_id']            ?? '';
 $session_id_sesion = $_SESSION['stripe_session_id'] ?? '';
 
 if (empty($session_id_url) || $session_id_url !== $session_id_sesion) {
@@ -45,13 +45,13 @@ unset($_SESSION['stripe_session_id']);
 $ch = curl_init('https://api.stripe.com/v1/checkout/sessions/' . urlencode($session_id_url));
 curl_setopt_array($ch, [
     CURLOPT_RETURNTRANSFER => true,
-    CURLOPT_HTTPGET => true,
-    CURLOPT_USERPWD => STRIPE_SECRET_KEY . ':',
+    CURLOPT_HTTPGET        => true,
+    CURLOPT_USERPWD        => STRIPE_SECRET_KEY . ':',
     CURLOPT_SSL_VERIFYPEER => false, // false en entorno local con certificado autofirmado
 ]);
-$response = curl_exec($ch);
+$response  = curl_exec($ch);
 $http_code = curl_getinfo($ch, CURLINFO_HTTP_CODE);
-$curl_err = curl_error($ch);
+$curl_err  = curl_error($ch);
 curl_close($ch);
 
 if ($curl_err) {
@@ -142,6 +142,7 @@ try {
 //   2. El cliente puede tener cualquier idioma configurado pero queremos
 //      que el recibo siempre sea legible -> usamos español
 // ─────────────────────────────────────────────────────────────────────────────
+// Email de confirmación via Brevo (PHPMailer)
 $stmt_email = $conn->prepare("SELECT email FROM usuarios WHERE id = ?");
 $stmt_email->bind_param("i", $uid);
 $stmt_email->execute();
@@ -149,28 +150,15 @@ $res_email = $stmt_email->get_result();
 $stmt_email->close();
 
 if ($res_email && $row_email = $res_email->fetch_assoc()) {
-    $email_cliente = $row_email['email'];
-
-    // Asunto y cuerpo del email en texto plano, sin traduccion, puro PHP
-    $asunto = "[Algorya] Confirmacion de tu Pedido #" . $pedido_id;
-
-    $cuerpo = "Hola " . $nombre_cliente . ",\n\n";
-    $cuerpo .= "Gracias por tu compra en Algorya. Tu pago ha sido procesado correctamente por Stripe.\n\n";
-    $cuerpo .= "Resumen del pedido #" . $pedido_id . ":\n";
-    foreach ($items_pedido as $item) {
-        $subtotal = number_format($item['precio'] * $item['cantidad'], 2);
-        $cuerpo .= "  - " . $item['nombre'] . " x" . $item['cantidad'] . " -> " . $subtotal . " EUR\n";
-    }
-    $cuerpo .= "\nTotal pagado: " . number_format($total_pedido, 2) . " EUR\n";
-    $cuerpo .= "Metodo: Stripe (Sandbox)\n\n";
-    $cuerpo .= "En breve comenzaremos a preparar tu envio.\n\n";
-    $cuerpo .= "Atentamente,\nEl equipo de Algorya\nhola@algorya.store";
-
-    $cabeceras = "From: hola@algorya.store\r\n" .
-        "Reply-To: hola@algorya.store\r\n" .
-        "X-Mailer: PHP/" . phpversion();
-
-    @mail($email_cliente, $asunto, $cuerpo, $cabeceras);
+    require_once __DIR__ . '/includes/mailer.php';
+    mail_confirmacion_pedido(
+        $row_email['email'],
+        $nombre_cliente,
+        $pedido_id,
+        $items_pedido,
+        $total_pedido,
+        $session_id_url
+    );
 }
 // =============================================================================
 // A partir de aquí empieza el HTML.
@@ -179,101 +167,90 @@ if ($res_email && $row_email = $res_email->fetch_assoc()) {
 ?>
 <!DOCTYPE html>
 <html lang="<?= LANG ?>" data-bs-theme="light">
-
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>
-        <?= t('success_titulo') ?> | Algorya
-    </title>
+    <title><?= t('success_titulo') ?> | Algorya</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css">
     <link rel="stylesheet" href="estilos.css">
 </head>
-
 <body class="d-flex align-items-center justify-content-center" style="min-height: 100vh;">
 
-    <div class="container">
-        <div class="row justify-content-center">
-            <div class="col-md-6 col-lg-5">
-                <div class="card premium-card border-0 rounded-4 shadow-sm text-center p-5">
+<div class="container">
+    <div class="row justify-content-center">
+        <div class="col-md-6 col-lg-5">
+            <div class="card premium-card border-0 rounded-4 shadow-sm text-center p-5">
 
-                    <!-- Icono de éxito -->
-                    <div class="mb-4">
-                        <div class="rounded-circle d-inline-flex align-items-center justify-content-center"
-                            style="width:90px; height:90px; background: rgba(34,197,94,0.15);">
-                            <i class="bi bi-check-circle-fill text-success" style="font-size: 3rem;"></i>
-                        </div>
+                <!-- Icono de éxito -->
+                <div class="mb-4">
+                    <div class="rounded-circle d-inline-flex align-items-center justify-content-center"
+                         style="width:90px; height:90px; background: rgba(34,197,94,0.15);">
+                        <i class="bi bi-check-circle-fill text-success" style="font-size: 3rem;"></i>
                     </div>
-
-                    <h2 class="fw-bold premium-text mb-2">
-                        <?= t('success_titulo') ?>
-                    </h2>
-                    <p class="premium-muted mb-4">
-                        <?= t('success_subtitulo', ['#' . $pedido_id]) ?>
-                    </p>
-
-                    <hr style="border-color: var(--border-color);">
-
-                    <!-- Desglose de productos -->
-                    <div class="text-start my-3">
-                        <?php foreach ($items_pedido as $item): ?>
-                            <div class="d-flex justify-content-between small premium-text py-1">
-                                <span>
-                                    <?= htmlspecialchars($item['nombre']) ?>
-                                    <span class="premium-muted">×
-                                        <?= (int) $item['cantidad'] ?>
-                                    </span>
-                                </span>
-                                <span class="fw-semibold">
-                                    <?= number_format($item['precio'] * $item['cantidad'], 2) ?> €
-                                </span>
-                            </div>
-                        <?php endforeach; ?>
-                    </div>
-
-                    <hr style="border-color: var(--border-color);">
-
-                    <!-- Total pagado -->
-                    <div class="d-flex justify-content-between align-items-center my-3">
-                        <span class="fw-bold premium-text">
-                            <?= t('success_total') ?>
-                        </span>
-                        <span class="fw-black text-primary fs-5">
-                            <?= number_format($total_pedido, 2) ?> €
-                        </span>
-                    </div>
-
-                    <!-- ID de sesión Stripe (trazabilidad) -->
-                    <div class="premium-muted mb-3" style="font-size: 0.7rem;">
-                        ID Stripe: <code><?= htmlspecialchars(substr($session_id_url, 0, 30)) ?>...</code>
-                    </div>
-
-                    <!-- Aviso Sandbox -->
-                    <div class="alert border-0 rounded-3 small text-start mb-4"
-                        style="background: rgba(59,130,246,0.1); color: var(--text-main);">
-                        <i class="bi bi-info-circle-fill text-primary me-2"></i>
-                        <?= t('success_sandbox') ?>
-                    </div>
-
-                    <!-- Botones de acción -->
-                    <a href="index.php" class="btn btn-primary btn-lg rounded-pill w-100 fw-bold mb-2"
-                        style="background: linear-gradient(135deg, #3b82f6, #6366f1); border: none;">
-                        <i class="bi bi-bag me-2"></i>
-                        <?= t('success_btn_seguir') ?>
-                    </a>
-                    <a href="perfil.php" class="btn btn-outline-secondary rounded-pill w-100 fw-semibold">
-                        <i class="bi bi-person me-2"></i>
-                        <?= t('success_btn_pedidos') ?>
-                    </a>
-
                 </div>
+
+                <h2 class="fw-bold premium-text mb-2"><?= t('success_titulo') ?></h2>
+                <p class="premium-muted mb-4">
+                    <?= t('success_subtitulo', ['#' . $pedido_id]) ?>
+                </p>
+
+                <hr style="border-color: var(--border-color);">
+
+                <!-- Desglose de productos -->
+                <div class="text-start my-3">
+                    <?php foreach ($items_pedido as $item): ?>
+                    <div class="d-flex justify-content-between small premium-text py-1">
+                        <span>
+                            <?= htmlspecialchars($item['nombre']) ?>
+                            <span class="premium-muted">×<?= (int)$item['cantidad'] ?></span>
+                        </span>
+                        <span class="fw-semibold">
+                            <?= number_format($item['precio'] * $item['cantidad'], 2) ?> €
+                        </span>
+                    </div>
+                    <?php endforeach; ?>
+                </div>
+
+                <hr style="border-color: var(--border-color);">
+
+                <!-- Total pagado -->
+                <div class="d-flex justify-content-between align-items-center my-3">
+                    <span class="fw-bold premium-text"><?= t('success_total') ?></span>
+                    <span class="fw-black text-primary fs-5">
+                        <?= number_format($total_pedido, 2) ?> €
+                    </span>
+                </div>
+
+                <!-- ID de sesión Stripe (trazabilidad) -->
+                <div class="premium-muted mb-3" style="font-size: 0.7rem;">
+                    ID Stripe: <code><?= htmlspecialchars(substr($session_id_url, 0, 30)) ?>...</code>
+                </div>
+
+                <!-- Aviso Sandbox -->
+                <div class="alert border-0 rounded-3 small text-start mb-4"
+                     style="background: rgba(59,130,246,0.1); color: var(--text-main);">
+                    <i class="bi bi-info-circle-fill text-primary me-2"></i>
+                    <?= t('success_sandbox') ?>
+                </div>
+
+                <!-- Botones de acción -->
+                <a href="index.php"
+                   class="btn btn-primary btn-lg rounded-pill w-100 fw-bold mb-2"
+                   style="background: linear-gradient(135deg, #3b82f6, #6366f1); border: none;">
+                    <i class="bi bi-bag me-2"></i><?= t('success_btn_seguir') ?>
+                </a>
+                <a href="perfil.php"
+                   class="btn btn-outline-secondary rounded-pill w-100 fw-semibold">
+                    <i class="bi bi-person me-2"></i><?= t('success_btn_pedidos') ?>
+                </a>
+
             </div>
         </div>
     </div>
+</div>
 
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
-    <script src="tema.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+<script src="tema.js"></script>
 </body>
-
 </html>

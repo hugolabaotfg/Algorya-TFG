@@ -205,46 +205,32 @@ $total_actualizados = 0;
 $total_errores      = 0;
 $todos_productos    = [];
 
+// NOTA: La limpieza de productos anteriores se hace MÁS ABAJO,
+// solo después de confirmar que las APIs han devuelto datos suficientes.
+// Así nunca nos quedamos sin catálogo si una API falla.
+
 // =============================================================================
-// LIMPIEZA PREVIA: Borrar productos importados por API en ejecuciones anteriores
-// Esto garantiza que siempre tengamos exactamente 96 productos de API,
-// sin acumulacion de ejecuciones anteriores. Los productos manuales del admin
-// (imagen LIKE 'prod_%') NO se borran nunca.
+// HANDLER DE ERRORES FATALES
+// Si el script muere por un error no controlado, envía email al admin
+// y registra el error en el log antes de terminar.
 // =============================================================================
-log_msg("Limpiando productos de API anteriores...");
+register_shutdown_function(function() {
+    $error = error_get_last();
+    if ($error && in_array($error['type'], [E_ERROR, E_PARSE, E_CORE_ERROR, E_COMPILE_ERROR])) {
+        $msg = "Error fatal en sync_catalogo.php:\n";
+        $msg .= "  Tipo:    " . $error['type'] . "\n";
+        $msg .= "  Mensaje: " . $error['message'] . "\n";
+        $msg .= "  Archivo: " . $error['file'] . " (linea " . $error['line'] . ")\n";
+        $msg .= "\nEl catalogo puede haberse quedado vacio. Revisa la BD urgentemente.";
 
-// Obtener imagenes de productos API para borrarlas fisicamente
-$res_imgs = $conn->query(
-    "SELECT imagen FROM productos
-     WHERE imagen LIKE 'fakestore_%'
-        OR imagen LIKE 'dummyjson_%'
-        OR imagen LIKE 'api_%'"
-);
-$imagenes_a_borrar = [];
-while ($row = $res_imgs->fetch_assoc()) {
-    $imagenes_a_borrar[] = $row['imagen'];
-}
+        @file_put_contents(LOG_FILE, "[" . date("Y-m-d H:i:s") . "] ERROR FATAL: " . $error['message'] . "\n", FILE_APPEND);
 
-// Borrar registros de BD
-$conn->query(
-    "DELETE FROM productos
-     WHERE imagen LIKE 'fakestore_%'
-        OR imagen LIKE 'dummyjson_%'
-        OR imagen LIKE 'api_%'"
-);
-$borrados_bd = $conn->affected_rows;
-
-// Borrar archivos de imagen fisicos
-$borrados_img = 0;
-foreach ($imagenes_a_borrar as $img) {
-    $ruta = IMG_DIR . $img;
-    if ($img !== 'default.jpg' && file_exists($ruta)) {
-        @unlink($ruta);
-        $borrados_img++;
+        if (file_exists(__DIR__ . '/vendor/autoload.php')) {
+            require_once __DIR__ . '/includes/mailer.php';
+            mail_alerta_sync($msg);
+        }
     }
-}
-log_msg("  -> Registros BD eliminados : {$borrados_bd}");
-log_msg("  -> Imagenes fisicas borradas: {$borrados_img}");
+});
 
 // =============================================================================
 // FUENTE 1: FakeStoreAPI (20 productos — Ropa, electronica, joyeria)
@@ -263,21 +249,77 @@ curl_close($ch);
 
 if ($json) {
     $productos = json_decode($json, true);
-    foreach ($productos as $p) {
-        $todos_productos[] = [
-            'nombre'      => $p['title']       ?? 'Producto sin nombre',
-            'descripcion' => substr($p['description'] ?? '', 0, 200),
-            'precio'      => (float)($p['price'] ?? 9.99),
-            'imagen_url'  => $p['image']        ?? '',
-            'categoria'   => $p['category']     ?? 'general',
-            'rating'      => (float)($p['rating']['rate']  ?? 3.5),
-            'reviews'     => (int)($p['rating']['count']   ?? 50),
-            'fuente'      => 'fakestore',
-        ];
+    if (is_array($productos) && count($productos) > 0) {
+        foreach ($productos as $p) {
+            $todos_productos[] = [
+                'nombre'      => $p['title']       ?? 'Producto sin nombre',
+                'descripcion' => substr($p['description'] ?? '', 0, 200),
+                'precio'      => (float)($p['price'] ?? 9.99),
+                'imagen_url'  => $p['image']        ?? '',
+                'categoria'   => $p['category']     ?? 'general',
+                'rating'      => (float)($p['rating']['rate']  ?? 3.5),
+                'reviews'     => (int)($p['rating']['count']   ?? 50),
+                'fuente'      => 'fakestore',
+            ];
+        }
+        log_msg("FakeStoreAPI: " . count($productos) . " productos obtenidos.");
+    } else {
+        log_msg("AVISO: FakeStoreAPI devolvio respuesta invalida. Continuando con otras fuentes...");
     }
-    log_msg("FakeStoreAPI: " . count($productos) . " productos obtenidos.");
 } else {
     log_msg("AVISO: FakeStoreAPI no respondio. Continuando con otras fuentes...");
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// AUTO-RECUPERACION: Si FakeStoreAPI fallo, usar API de respaldo
+// para completar los 96 productos objetivo.
+// ─────────────────────────────────────────────────────────────────────────────
+if (count($todos_productos) === 0) {
+    log_msg("Activando API de respaldo (Platzi Fake Store)...");
+    $ch_backup = curl_init("https://api.escuelajs.co/api/v1/products?offset=0&limit=20");
+    curl_setopt_array($ch_backup, [
+        CURLOPT_RETURNTRANSFER => true,
+        CURLOPT_TIMEOUT        => 20,
+        CURLOPT_SSL_VERIFYPEER => false,
+        CURLOPT_USERAGENT      => 'Algorya-Bot/1.0',
+    ]);
+    $json_backup = curl_exec($ch_backup);
+    curl_close($ch_backup);
+
+    if ($json_backup) {
+        $productos_backup = json_decode($json_backup, true);
+        if (is_array($productos_backup) && count($productos_backup) > 0) {
+            foreach ($productos_backup as $p) {
+                $imagenes = $p['images'] ?? [];
+                $img_url  = !empty($imagenes) ? $imagenes[0] : '';
+                // Platzi a veces devuelve URLs con comillas — limpiarlas
+                $img_url  = trim($img_url, '"[]');
+                $todos_productos[] = [
+                    'nombre'      => $p['title']       ?? 'Producto sin nombre',
+                    'descripcion' => substr($p['description'] ?? '', 0, 200),
+                    'precio'      => (float)($p['price'] ?? 9.99),
+                    'imagen_url'  => $img_url,
+                    'categoria'   => $p['category']['name'] ?? 'general',
+                    'rating'      => 4.0,
+                    'reviews'     => rand(50, 300),
+                    'fuente'      => 'fakestore',
+                ];
+            }
+            log_msg("API respaldo: " . count($productos_backup) . " productos obtenidos.");
+
+            // Notificar al admin que se usó el respaldo
+            if (file_exists(__DIR__ . '/vendor/autoload.php')) {
+                require_once __DIR__ . '/includes/mailer.php';
+                mail_alerta_sync(
+                    "FakeStoreAPI no respondio. Se ha usado la API de respaldo automaticamente.\n" .
+                    "El catalogo se ha sincronizado correctamente con " . count($todos_productos) . " productos.\n" .
+                    "No se requiere accion inmediata."
+                );
+            }
+        } else {
+            log_msg("AVISO: API de respaldo tambien fallo. Solo se usara DummyJSON.");
+        }
+    }
 }
 
 // =============================================================================
@@ -338,9 +380,51 @@ $total_obtenidos = count($todos_productos);
 log_msg("Total productos obtenidos de todas las fuentes: {$total_obtenidos}");
 
 if ($total_obtenidos < 10) {
-    log_msg("ERROR CRITICO: Menos de 10 productos obtenidos. Abortando sync para no vaciar el catalogo.");
+    $err_msg = "Menos de 10 productos obtenidos ({$total_obtenidos}). Abortando sync para no vaciar el catalogo.";
+    log_msg("ERROR CRITICO: " . $err_msg);
+    // Alerta al administrador via Brevo
+    if (file_exists(__DIR__ . '/vendor/autoload.php')) {
+        require_once __DIR__ . '/includes/mailer.php';
+        mail_alerta_sync($err_msg);
+    }
     exit(1);
 }
+
+// =============================================================================
+// LIMPIEZA SEGURA: Solo borramos productos anteriores DESPUÉS de confirmar
+// que las APIs devolvieron datos suficientes. Asi nunca nos quedamos sin
+// catalogo si una API falla durante la noche.
+// =============================================================================
+log_msg("Limpiando productos de API anteriores (datos nuevos confirmados)...");
+
+$res_imgs = $conn->query(
+    "SELECT imagen FROM productos
+     WHERE imagen LIKE 'fakestore_%'
+        OR imagen LIKE 'dummyjson_%'
+        OR imagen LIKE 'api_%'"
+);
+$imagenes_a_borrar = [];
+while ($row = $res_imgs->fetch_assoc()) {
+    $imagenes_a_borrar[] = $row['imagen'];
+}
+
+$conn->query(
+    "DELETE FROM productos
+     WHERE imagen LIKE 'fakestore_%'
+        OR imagen LIKE 'dummyjson_%'
+        OR imagen LIKE 'api_%'"
+);
+$borrados_bd  = $conn->affected_rows;
+$borrados_img = 0;
+foreach ($imagenes_a_borrar as $img) {
+    $ruta = IMG_DIR . $img;
+    if ($img !== 'default.jpg' && file_exists($ruta)) {
+        @unlink($ruta);
+        $borrados_img++;
+    }
+}
+log_msg("  -> Registros BD eliminados : {$borrados_bd}");
+log_msg("  -> Imagenes fisicas borradas: {$borrados_img}");
 
 // =============================================================================
 // PROCESAMIENTO: CALCULAR TREND_SCORE Y PREPARAR DATOS
@@ -451,3 +535,24 @@ log_msg("  -> Productos DESTACADOS        : {$destacados_en_bd}");
 log_msg("  -> Paginas en el catalogo      : " . ceil($total_en_bd / 12) . " (a 12 productos/pagina)");
 log_msg("============================================================");
 log_msg("Fin de sincronizacion.");
+
+// ─────────────────────────────────────────────────────────────────────────────
+// EMAIL DE RESUMEN AL ADMIN
+// Se envía solo si hay errores o el catálogo tiene menos de 50 productos.
+// Si todo va bien no se envía email para no saturar.
+// ─────────────────────────────────────────────────────────────────────────────
+if (file_exists(__DIR__ . '/vendor/autoload.php')) {
+    require_once __DIR__ . '/includes/mailer.php';
+    if ($total_errores > 0 || $total_en_bd < 50) {
+        $resumen  = "Sincronizacion completada CON ADVERTENCIAS el " . date("d/m/Y H:i") . "\n\n";
+        $resumen .= "  Nuevos      : {$total_nuevos}\n";
+        $resumen .= "  Actualizados: {$total_actualizados}\n";
+        $resumen .= "  Errores     : {$total_errores}\n";
+        $resumen .= "  Total BD    : {$total_en_bd} productos\n";
+        $resumen .= "  Paginas     : " . ceil($total_en_bd / 12) . "\n\n";
+        if ($total_en_bd < 50) {
+            $resumen .= "ATENCION: El catalogo tiene menos de 50 productos. Revisa las APIs.\n";
+        }
+        mail_alerta_sync($resumen);
+    }
+}
