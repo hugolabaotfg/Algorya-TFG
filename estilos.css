@@ -612,3 +612,89 @@ footer {
     .kpi-card .kpi-value { font-size: 1.5rem; }
     .table-admin th, .table-admin td { font-size: 0.8rem; padding: 0.65rem 0.5rem; }
 }
+
+/* =============================================================================
+   RESPONSIVE MÓVIL — Optimizaciones específicas para pantallas pequeñas
+============================================================================= */
+
+/* Hero más compacto en móvil */
+.hero-title {
+    font-size: clamp(1.8rem, 8vw, 3.5rem);
+    letter-spacing: -0.04em;
+    line-height: 1.1;
+}
+
+.hero-subtitle {
+    font-size: clamp(0.9rem, 3.5vw, 1.15rem);
+    max-width: 600px;
+    line-height: 1.55;
+}
+
+/* Tarjetas más compactas en móvil (2 columnas) */
+@media (max-width: 576px) {
+    .hero-section { padding: 48px 0 40px; }
+
+    /* Tarjetas en 2 columnas: reducir padding y texto */
+    .card-body { padding: 0.75rem !important; }
+    .card-title { font-size: 0.8rem !important; }
+
+    /* Imagen más pequeña en móvil */
+    .premium-img-wrapper img { height: 130px !important; }
+
+    /* Precio más pequeño */
+    .card-body .fs-4 { font-size: 1rem !important; }
+    .card-body .small { font-size: 0.7rem !important; }
+
+    /* Botón añadir al carro compacto */
+    .btn-submit-cart {
+        font-size: 0.75rem !important;
+        padding: 0.4rem 0.5rem !important;
+    }
+    .btn-submit-cart .bi-cart-plus { display: none; }
+
+    /* Filtros de búsqueda apilados */
+    #form-filtros .row { gap: 0.5rem; }
+
+    /* Paginación más pequeña */
+    .premium-pagination { padding: 0.4rem 0.6rem !important; font-size: 0.8rem !important; }
+
+    /* Modal de login — evitar que el teclado lo tape */
+    .modal-dialog { margin: 0.5rem; }
+    .modal-body { padding: 1rem !important; }
+
+    /* Navbar colapsado más limpio */
+    .navbar-collapse { box-shadow: 0 8px 20px rgba(0,0,0,0.08); border-radius: 0 0 12px 12px; }
+}
+
+/* Tablet */
+@media (min-width: 577px) and (max-width: 991px) {
+    .hero-section { padding: 64px 0 56px; }
+}
+
+/* Navbar: menú hamburguesa con animación suave */
+.navbar-toggler:focus { box-shadow: none !important; }
+.navbar-toggler .bi-list { transition: transform 0.2s ease; }
+.navbar-toggler[aria-expanded="true"] .bi-list { transform: rotate(90deg); }
+
+/* Menú móvil colapsado — animación de entrada */
+.navbar-collapse.collapsing { transition: height 0.2s ease; }
+
+/* Fix: el darkModeToggle duplicado en escritorio */
+@media (max-width: 991px) {
+    /* Ocultar el darkModeToggle del bloque escritorio en móvil */
+    .d-lg-flex #darkModeToggle { display: none !important; }
+}
+
+/* Logo navbar */
+.navbar-logo-icon {
+    transition: transform 0.2s ease;
+    flex-shrink: 0;
+}
+.navbar-brand:hover .navbar-logo-icon {
+    transform: rotate(-8deg) scale(1.05);
+}
+/* Fix: evitar que tema.js aplique el toggle a ambos IDs duplicados */
+.d-lg-none #darkModeToggle,
+.d-none.d-lg-flex #darkModeToggle {
+    /* Bootstrap ya maneja la visibilidad con d-none/d-lg-flex */
+}

@@ -205,56 +205,84 @@ $separador    = str_contains($url_sin_lang, '?') ? '&' : '?';
      NAVBAR
      ========================================================================= -->
 <nav class="navbar navbar-expand-lg sticky-top shadow-sm">
-    <div class="container">
+    <div class="container d-flex justify-content-between align-items-center">
 
-        <!-- Logo -->
-        <a class="navbar-brand fw-bold fs-3 text-decoration-none" href="index.php" style="letter-spacing:-1px;">
-            <i class="bi bi-box-seam-fill text-primary me-1"></i>
-            <span class="text-primary"><?= t('marca_nombre') ?></span><span class="premium-text" style="font-size:0.55em;margin-left:1px;"><?= t('marca_tld') ?></span>
+        <!-- ── LOGO ─────────────────────────────────────────────────────── -->
+        <a class="navbar-brand text-decoration-none d-flex align-items-center gap-2 flex-shrink-0" href="index.php">
+            <div class="navbar-logo-icon">
+                <svg width="28" height="28" viewBox="0 0 28 28" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <defs>
+                        <linearGradient id="logoGrad" x1="0" y1="0" x2="28" y2="28" gradientUnits="userSpaceOnUse">
+                            <stop offset="0%" stop-color="#3b82f6"/>
+                            <stop offset="100%" stop-color="#6366f1"/>
+                        </linearGradient>
+                    </defs>
+                    <rect width="28" height="28" rx="8" fill="url(#logoGrad)"/>
+                    <path d="M14 6 L20 21 H17.5 L16 17.5 H12 L10.5 21 H8 L14 6Z M12.8 15.5H15.2L14 12Z"
+                          fill="white" opacity="0.95"/>
+                    <circle cx="21" cy="8" r="2" fill="white" opacity="0.6"/>
+                </svg>
+            </div>
+            <span>
+                <span class="text-primary fw-black" style="font-family:'Outfit',sans-serif;font-size:1.2rem;letter-spacing:-.04em;">Algorya</span><span class="premium-muted" style="font-size:.6rem;font-weight:500;letter-spacing:.02em;margin-left:1px;">.store</span>
+            </span>
         </a>
 
-        <div class="d-flex align-items-center gap-2 gap-md-3">
+        <!-- ── MÓVIL: iconos rápidos + hamburguesa (solo < lg) ──────────── -->
+        <div class="d-flex align-items-center gap-2 d-lg-none">
 
-            <!-- Modo oscuro -->
+            <div id="darkModeToggleMobile" title="<?= t('nav_modo_oscuro') ?>"
+                 style="width:34px;height:34px;cursor:pointer;border:1px solid var(--border-color);border-radius:50%;display:flex;align-items:center;justify-content:center;color:var(--text-main);">
+                <i class="bi bi-moon-stars-fill" style="font-size:.85rem;"></i>
+            </div>
+
+            <?php if (!isset($_SESSION['rol']) || $_SESSION['rol'] !== 'admin'): ?>
+            <a href="carrito.php"
+               class="btn btn-outline-primary btn-sm rounded-pill position-relative d-flex align-items-center justify-content-center"
+               style="width:34px;height:34px;padding:0;">
+                <i class="bi bi-cart3" style="font-size:.85rem;"></i>
+                <span id="cart-badge-mobile"
+                      class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger"
+                      style="font-size:.55rem;padding:.2em .4em;"
+                      <?= ($contador_carrito > 0) ? '' : 'style="display:none;"' ?>>
+                    <?= $contador_carrito ?>
+                </span>
+            </a>
+            <?php endif; ?>
+
+            <button class="navbar-toggler border-0 p-0 d-flex align-items-center justify-content-center rounded-3"
+                    type="button" data-bs-toggle="collapse" data-bs-target="#navbarMobile"
+                    aria-controls="navbarMobile" aria-expanded="false"
+                    style="width:34px;height:34px;background:var(--hover-bg);">
+                <i class="bi bi-list premium-text" style="font-size:1.1rem;"></i>
+            </button>
+        </div>
+
+        <!-- ── ESCRITORIO: todos los elementos a la derecha (solo >= lg) ── -->
+        <div class="d-none d-lg-flex align-items-center gap-2">
+
             <div id="darkModeToggle" title="<?= t('nav_modo_oscuro') ?>">
                 <i class="bi bi-moon-stars-fill fs-6"></i>
             </div>
 
-            <!-- ── SELECTOR DE IDIOMA ────────────────────────────────────── -->
-            <!-- Dropdown con banderas. Al pulsar cambia el idioma vía ?lang=xx
-                 y lo guarda en cookie para todas las páginas. -->
+            <!-- Selector de idioma -->
             <div class="dropdown">
                 <button class="btn btn-sm btn-outline-secondary rounded-pill px-2 dropdown-toggle"
-                        type="button" data-bs-toggle="dropdown"
-                        title="<?= t('lang_selector_titulo') ?>">
-                    <?php if (LANG === 'es'): ?>
-                        🇪🇸 <span class="d-none d-md-inline">ES</span>
-                    <?php else: ?>
-                        🇬🇧 <span class="d-none d-md-inline">EN</span>
-                    <?php endif; ?>
+                        type="button" data-bs-toggle="dropdown">
+                    <?= LANG === 'es' ? '🇪🇸 ES' : '🇬🇧 EN' ?>
                 </button>
-                <ul class="dropdown-menu dropdown-menu-end premium-card border-0 shadow mt-1" style="min-width:120px;">
-                    <li>
-                        <a class="dropdown-item premium-text <?= LANG === 'es' ? 'fw-bold text-primary' : '' ?>"
-                           href="<?= $url_sin_lang . $separador ?>lang=es">
-                            🇪🇸 <?= t('lang_es') ?>
-                        </a>
-                    </li>
-                    <li>
-                        <a class="dropdown-item premium-text <?= LANG === 'en' ? 'fw-bold text-primary' : '' ?>"
-                           href="<?= $url_sin_lang . $separador ?>lang=en">
-                            🇬🇧 <?= t('lang_en') ?>
-                        </a>
-                    </li>
+                <ul class="dropdown-menu dropdown-menu-end premium-card border-0 shadow mt-1" style="min-width:110px;">
+                    <li><a class="dropdown-item premium-text <?= LANG==='es'?'fw-bold text-primary':'' ?>"
+                           href="<?= $url_sin_lang . $separador ?>lang=es">🇪🇸 <?= t('lang_es') ?></a></li>
+                    <li><a class="dropdown-item premium-text <?= LANG==='en'?'fw-bold text-primary':'' ?>"
+                           href="<?= $url_sin_lang . $separador ?>lang=en">🇬🇧 <?= t('lang_en') ?></a></li>
                 </ul>
             </div>
-            <!-- ── FIN SELECTOR DE IDIOMA ─────────────────────────────────── -->
 
-            <!-- Carrito (oculto para admin) -->
+            <!-- Carrito -->
             <?php if (!isset($_SESSION['rol']) || $_SESSION['rol'] !== 'admin'): ?>
             <a href="carrito.php" class="btn btn-outline-primary btn-sm rounded-pill px-3 position-relative d-flex align-items-center">
-                <i class="bi bi-cart3 me-1"></i>
-                <span class="d-none d-md-inline"><?= t('nav_carrito') ?></span>
+                <i class="bi bi-cart3 me-1"></i><?= t('nav_carrito') ?>
                 <span id="cart-badge"
                       class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger shadow-sm"
                       <?= ($contador_carrito > 0) ? '' : 'style="display:none;"' ?>>
@@ -264,50 +292,94 @@ $separador    = str_contains($url_sin_lang, '?') ? '&' : '?';
             <?php endif; ?>
 
             <?php if (isset($_SESSION['user_id'])): ?>
-                <!-- Usuario logueado -->
-                <a href="perfil.php" class="premium-text d-none d-md-inline text-decoration-none fw-semibold">
+                <a href="perfil.php" class="premium-text text-decoration-none fw-semibold" style="font-size:.9rem;">
                     <i class="bi bi-person-circle text-primary"></i>
                     <?= htmlspecialchars($_SESSION['nombre']) ?>
                 </a>
-
                 <?php if ($_SESSION['rol'] === 'admin'): ?>
-                <div class="dropdown d-inline-block">
+                <div class="dropdown">
                     <button class="btn btn-primary btn-sm rounded-pill dropdown-toggle px-3"
                             type="button" data-bs-toggle="dropdown">
-                        <i class="bi bi-gear-fill me-1"></i> <?= t('nav_gestion') ?>
+                        <i class="bi bi-gear-fill me-1"></i><?= t('nav_gestion') ?>
                     </button>
                     <ul class="dropdown-menu dropdown-menu-end premium-card border-0 shadow-lg mt-2">
-                        <li><a class="dropdown-item premium-text" href="admin_pedidos.php"><i class="bi bi-cart-check me-2"></i><?= t('nav_pedidos') ?></a></li>
-                        <li><a class="dropdown-item premium-text" href="admin_usuarios.php"><i class="bi bi-people me-2"></i><?= t('nav_clientes') ?></a></li>
-                        <li><a class="dropdown-item premium-text" href="admin_estadisticas.php"><i class="bi bi-bar-chart me-2"></i><?= t('nav_estadisticas') ?></a></li>
-                        <li><a class="dropdown-item premium-text" href="admin_mailing.php"><i class="bi bi-envelope-at me-2"></i><?= t('nav_enviar_email') ?></a></li>
+                        <li><a class="dropdown-item premium-text" href="admin_pedidos.php"><i class="bi bi-receipt me-2 text-primary"></i><?= t('nav_pedidos') ?></a></li>
+                        <li><a class="dropdown-item premium-text" href="admin_usuarios.php"><i class="bi bi-people me-2 text-primary"></i><?= t('nav_clientes') ?></a></li>
+                        <li><a class="dropdown-item premium-text" href="admin_estadisticas.php"><i class="bi bi-bar-chart me-2 text-primary"></i><?= t('nav_estadisticas') ?></a></li>
+                        <li><a class="dropdown-item premium-text" href="admin_mailing.php"><i class="bi bi-envelope-at me-2 text-primary"></i><?= t('nav_enviar_email') ?></a></li>
                         <li><hr class="dropdown-divider" style="border-color:var(--border-color);"></li>
-                        <li><a class="dropdown-item premium-text" href="add_product.php"><i class="bi bi-plus-circle me-2"></i><?= t('nav_anadir_producto') ?></a></li>
+                        <li><a class="dropdown-item premium-text" href="add_product.php"><i class="bi bi-plus-circle me-2 text-success"></i><?= t('nav_anadir_producto') ?></a></li>
                     </ul>
                 </div>
                 <?php endif; ?>
-
-                <a href="logout.php" class="btn btn-danger btn-sm border-0 rounded-pill ms-1"
-                   title="<?= t('nav_cerrar_sesion') ?>">
+                <a href="logout.php" class="btn btn-danger btn-sm border-0 rounded-pill" title="<?= t('nav_cerrar_sesion') ?>">
                     <i class="bi bi-box-arrow-right"></i>
                 </a>
-
             <?php else: ?>
-                <!-- Visitante: abre modal de login o va a registro -->
-                <button type="button"
-                        class="btn btn-outline-primary btn-sm rounded-pill px-3 fw-semibold"
+                <button type="button" class="btn btn-outline-primary btn-sm rounded-pill px-3 fw-semibold"
                         data-bs-toggle="modal" data-bs-target="#loginModal">
-                    <i class="bi bi-person me-1"></i> <?= t('nav_entrar') ?>
+                    <i class="bi bi-person me-1"></i><?= t('nav_entrar') ?>
                 </button>
                 <a href="registro.php" class="btn btn-primary btn-sm rounded-pill px-3 fw-semibold">
-                    <i class="bi bi-person-plus me-1"></i>
-                    <span class="d-none d-md-inline"><?= t('nav_registrarse') ?></span>
+                    <i class="bi bi-person-plus me-1"></i><?= t('nav_registrarse') ?>
                 </a>
             <?php endif; ?>
-
         </div>
-    </div>
-</nav>
+
+        <!-- ── MENÚ MÓVIL COLAPSABLE ─────────────────────────────────────── -->
+        <div class="collapse navbar-collapse w-100" id="navbarMobile">
+            <div class="d-lg-none pt-3 pb-2 border-top mt-2" style="border-color:var(--border-color) !important;">
+
+                <!-- Selector de idioma -->
+                <div class="d-flex gap-2 mb-3">
+                    <a href="<?= $url_sin_lang . $separador ?>lang=es"
+                       class="btn btn-sm rounded-pill fw-bold flex-grow-1 <?= LANG==='es'?'btn-primary':'btn-outline-secondary' ?>">
+                        🇪🇸 Español
+                    </a>
+                    <a href="<?= $url_sin_lang . $separador ?>lang=en"
+                       class="btn btn-sm rounded-pill fw-bold flex-grow-1 <?= LANG==='en'?'btn-primary':'btn-outline-secondary' ?>">
+                        🇬🇧 English
+                    </a>
+                </div>
+
+                <?php if (isset($_SESSION['user_id'])): ?>
+                    <a href="perfil.php" class="d-flex align-items-center gap-2 p-2 rounded-3 text-decoration-none premium-text fw-semibold mb-2"
+                       style="border:1px solid var(--border-color);">
+                        <div class="rounded-circle d-flex align-items-center justify-content-center fw-black text-white flex-shrink-0"
+                             style="width:32px;height:32px;background:linear-gradient(135deg,#3b82f6,#6366f1);font-family:'Outfit',sans-serif;font-size:.85rem;">
+                            <?= strtoupper(mb_substr($_SESSION['nombre'], 0, 1, 'UTF-8')) ?>
+                        </div>
+                        <span style="font-size:.9rem;"><?= htmlspecialchars($_SESSION['nombre']) ?></span>
+                        <i class="bi bi-chevron-right ms-auto premium-muted" style="font-size:.75rem;"></i>
+                    </a>
+                    <?php if ($_SESSION['rol'] === 'admin'): ?>
+                    <div class="d-flex flex-column gap-1 mb-2">
+                        <p class="premium-muted fw-bold text-uppercase mb-1 px-1" style="font-size:.65rem;letter-spacing:.06em;">Panel Admin</p>
+                        <a href="admin_pedidos.php" class="d-flex align-items-center gap-2 p-2 rounded-3 text-decoration-none premium-text" style="border:1px solid var(--border-color);">
+                            <i class="bi bi-receipt text-primary"></i><?= t('nav_pedidos') ?>
+                        </a>
+                        <a href="admin_estadisticas.php" class="d-flex align-items-center gap-2 p-2 rounded-3 text-decoration-none premium-text" style="border:1px solid var(--border-color);">
+                            <i class="bi bi-bar-chart text-primary"></i><?= t('nav_estadisticas') ?>
+                        </a>
+                    </div>
+                    <?php endif; ?>
+                    <a href="logout.php" class="btn btn-outline-danger w-100 rounded-pill fw-semibold" style="font-size:.875rem;">
+                        <i class="bi bi-box-arrow-right me-2"></i><?= t('nav_cerrar_sesion') ?>
+                    </a>
+                <?php else: ?>
+                    <div class="d-flex flex-column gap-2">
+                        <button type="button"
+                                class="btn btn-outline-primary w-100 rounded-pill fw-bold py-2"
+                                data-bs-toggle="modal" data-bs-target="#loginModal">
+                            <i class="bi bi-person me-2"></i><?= t('nav_entrar') ?>
+                        </button>
+                        <a href="registro.php" class="btn btn-primary w-100 rounded-pill fw-bold py-2">
+                            <i class="bi bi-person-plus me-2"></i><?= t('nav_registrarse') ?>
+                        </a>
+                    </div>
+                <?php endif; ?>
+            </div>
+        </div>
 
 
 <!-- =========================================================================
@@ -315,10 +387,10 @@ $separador    = str_contains($url_sin_lang, '?') ? '&' : '?';
      ========================================================================= -->
 <div class="hero-section mb-5">
     <div class="container text-center" data-aos="zoom-in" data-aos-duration="800">
-        <h1 class="fw-bold mb-3 premium-text" style="font-size:3.5rem;letter-spacing:-2px;">
+        <h1 class="fw-bold mb-3 premium-text hero-title">
             <?= t('hero_titulo') ?>
         </h1>
-        <p class="premium-muted fs-5 mx-auto" style="max-width:600px;">
+        <p class="premium-muted mx-auto hero-subtitle">
             <?= t('hero_subtitulo') ?>
         </p>
     </div>
@@ -417,7 +489,7 @@ $separador    = str_contains($url_sin_lang, '?') ? '&' : '?';
         </div>
     </form>
 
-    <div class="row row-cols-1 row-cols-sm-2 row-cols-md-3 row-cols-lg-4 g-4 mb-5">
+    <div class="row row-cols-2 row-cols-sm-2 row-cols-md-3 row-cols-lg-4 g-3 mb-5">
         <?php
         if ($resultado && $resultado->num_rows > 0) {
             $delay = 0;
