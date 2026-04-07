@@ -10,6 +10,9 @@
 // Todos los mail() del proyecto se sustituyen por esta función.
 // =============================================================================
 
+// Cargar las claves secretas (Este archivo debe estar en el .gitignore)
+require_once 'claves_smtp.php';
+
 use PHPMailer\PHPMailer\PHPMailer;
 use PHPMailer\PHPMailer\SMTP;
 use PHPMailer\PHPMailer\Exception;
@@ -38,7 +41,6 @@ if (file_exists($autoloader)) {
 define('SMTP_HOST',     'smtp-relay.brevo.com');
 define('SMTP_PORT',     587);
 define('SMTP_USER',     'a61dc4001@smtp-brevo.com');
-define('SMTP_PASS',     'TU_CLAVE_SMTP_AQUI');
 define('FROM_EMAIL',    'hola@algorya.store');
 define('FROM_NAME',     'Algorya');
 define('ADMIN_EMAIL',   'hola@algorya.store'); // Email del administrador para alertas
@@ -64,7 +66,8 @@ function algorya_mail(string $to, string $nombre, string $asunto, string $cuerpo
         $mail->Host        = SMTP_HOST;
         $mail->SMTPAuth    = true;
         $mail->Username    = SMTP_USER;
-        $mail->Password    = SMTP_PASS;
+        // Aquí le inyectamos la clave secreta desde el archivo oculto
+        $mail->Password    = BREVO_SMTP_KEY; 
         $mail->SMTPSecure  = PHPMailer::ENCRYPTION_STARTTLS;
         $mail->Port        = SMTP_PORT;
         $mail->CharSet     = 'UTF-8';

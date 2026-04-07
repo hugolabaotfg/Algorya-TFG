@@ -5,3 +5,289 @@
 [2026-03-27 03:00:01]   -> Registros BD eliminados : 96
 [2026-03-27 03:00:01]   -> Imagenes fisicas borradas: 96
 [2026-03-27 03:00:01] Conectando con FakeStoreAPI...
+[2026-03-28 03:00:01] ============================================================
+[2026-03-28 03:00:01] ALGORYA - Inicio de sincronizacion de catalogo
+[2026-03-28 03:00:01] ============================================================
+[2026-03-28 03:00:01] Conectando con FakeStoreAPI...
+[2026-03-28 03:00:01] AVISO: FakeStoreAPI devolvio respuesta invalida. Continuando con otras fuentes...
+[2026-03-28 03:00:01] Activando API de respaldo (Platzi Fake Store)...
+[2026-03-28 03:00:01] API respaldo: 20 productos obtenidos.
+[2026-03-28 03:00:01] Conectando con DummyJSON...
+[2026-03-28 03:00:03] DummyJSON: 76 productos obtenidos.
+[2026-03-28 03:00:03] Total productos obtenidos de todas las fuentes: 96
+[2026-03-28 03:00:03] Limpiando productos de API anteriores (datos nuevos confirmados)...
+[2026-03-28 03:00:03]   -> Registros BD eliminados : 76
+[2026-03-28 03:00:03]   -> Imagenes fisicas borradas: 76
+[2026-03-28 03:00:03] Calculando puntuaciones de tendencia (trend_score)...
+[2026-03-28 03:00:03] Productos con trend_score >= 70 (DESTACADOS): 10
+[2026-03-28 03:00:03] Iniciando insercion/actualizacion en MariaDB...
+[2026-03-28 03:00:07] ------------------------------------------------------------
+[2026-03-28 03:00:07] SINCRONIZACION COMPLETADA:
+[2026-03-28 03:00:07]   -> Productos nuevos insertados : 96
+[2026-03-28 03:00:07]   -> Productos actualizados      : 0
+[2026-03-28 03:00:07]   -> Errores                     : 0
+[2026-03-28 03:00:07]   -> Total productos en catalogo : 97
+[2026-03-28 03:00:07]   -> Productos DESTACADOS        : 10
+[2026-03-28 03:00:07]   -> Paginas en el catalogo      : 9 (a 12 productos/pagina)
+[2026-03-28 03:00:07] ============================================================
+[2026-03-28 03:00:07] Fin de sincronizacion.
+[2026-03-29 03:00:01] ============================================================
+[2026-03-29 03:00:01] ALGORYA - Inicio de sincronizacion de catalogo
+[2026-03-29 03:00:01] ============================================================
+[2026-03-29 03:00:01] Conectando con FakeStoreAPI...
+[2026-03-29 03:00:01] AVISO: FakeStoreAPI devolvio respuesta invalida. Continuando con otras fuentes...
+[2026-03-29 03:00:01] Activando API de respaldo (Platzi Fake Store)...
+[2026-03-29 03:00:02] API respaldo: 20 productos obtenidos.
+[2026-03-29 03:00:02] Conectando con DummyJSON...
+[2026-03-29 03:00:03] DummyJSON: 76 productos obtenidos.
+[2026-03-29 03:00:03] Total productos obtenidos de todas las fuentes: 96
+[2026-03-29 03:00:03] Limpiando productos de API anteriores (datos nuevos confirmados)...
+[2026-03-29 03:00:03]   -> Registros BD eliminados : 76
+[2026-03-29 03:00:03]   -> Imagenes fisicas borradas: 76
+[2026-03-29 03:00:03] Calculando puntuaciones de tendencia (trend_score)...
+[2026-03-29 03:00:03] Productos con trend_score >= 70 (DESTACADOS): 2
+[2026-03-29 03:00:03] Iniciando insercion/actualizacion en MariaDB...
+[2026-03-29 03:00:07] ------------------------------------------------------------
+[2026-03-29 03:00:07] SINCRONIZACION COMPLETADA:
+[2026-03-29 03:00:07]   -> Productos nuevos insertados : 96
+[2026-03-29 03:00:07]   -> Productos actualizados      : 0
+[2026-03-29 03:00:07]   -> Errores                     : 0
+[2026-03-29 03:00:07]   -> Total productos en catalogo : 117
+[2026-03-29 03:00:07]   -> Productos DESTACADOS        : 6
+[2026-03-29 03:00:07]   -> Paginas en el catalogo      : 10 (a 12 productos/pagina)
+[2026-03-29 03:00:07] ============================================================
+[2026-03-29 03:00:07] Fin de sincronizacion.
+[2026-03-30 03:00:01] ============================================================
+[2026-03-30 03:00:01] ALGORYA - Inicio de sincronizacion de catalogo
+[2026-03-30 03:00:01] ============================================================
+[2026-03-30 03:00:01] Conectando con FakeStoreAPI...
+[2026-03-30 03:00:01] AVISO: FakeStoreAPI devolvio respuesta invalida. Continuando con otras fuentes...
+[2026-03-30 03:00:01] Activando API de respaldo (Platzi Fake Store)...
+[2026-03-30 03:00:02] API respaldo: 20 productos obtenidos.
+[2026-03-30 03:00:02] Conectando con DummyJSON...
+[2026-03-30 03:00:04] DummyJSON: 76 productos obtenidos.
+[2026-03-30 03:00:04] Total productos obtenidos de todas las fuentes: 96
+[2026-03-30 03:00:04] Limpiando productos de API anteriores (datos nuevos confirmados)...
+[2026-03-30 03:00:04]   -> Registros BD eliminados : 95
+[2026-03-30 03:00:04]   -> Imagenes fisicas borradas: 81
+[2026-03-30 03:00:04] Calculando puntuaciones de tendencia (trend_score)...
+[2026-03-30 03:00:04] Productos con trend_score >= 70 (DESTACADOS): 3
+[2026-03-30 03:00:04] Iniciando insercion/actualizacion en MariaDB...
+[2026-03-30 03:00:07] ------------------------------------------------------------
+[2026-03-30 03:00:07] SINCRONIZACION COMPLETADA:
+[2026-03-30 03:00:07]   -> Productos nuevos insertados : 95
+[2026-03-30 03:00:07]   -> Productos actualizados      : 1
+[2026-03-30 03:00:07]   -> Errores                     : 0
+[2026-03-30 03:00:07]   -> Total productos en catalogo : 117
+[2026-03-30 03:00:07]   -> Productos DESTACADOS        : 6
+[2026-03-30 03:00:07]   -> Paginas en el catalogo      : 10 (a 12 productos/pagina)
+[2026-03-30 03:00:07] ============================================================
+[2026-03-30 03:00:07] Fin de sincronizacion.
+[2026-03-31 03:00:01] ============================================================
+[2026-03-31 03:00:01] ALGORYA - Inicio de sincronizacion de catalogo
+[2026-03-31 03:00:01] ============================================================
+[2026-03-31 03:00:01] Conectando con FakeStoreAPI...
+[2026-03-31 03:00:01] AVISO: FakeStoreAPI devolvio respuesta invalida. Continuando con otras fuentes...
+[2026-03-31 03:00:01] Activando API de respaldo (Platzi Fake Store)...
+[2026-03-31 03:00:02] API respaldo: 20 productos obtenidos.
+[2026-03-31 03:00:02] Conectando con DummyJSON...
+[2026-03-31 03:00:03] DummyJSON: 76 productos obtenidos.
+[2026-03-31 03:00:03] Total productos obtenidos de todas las fuentes: 96
+[2026-03-31 03:00:03] Limpiando productos de API anteriores (datos nuevos confirmados)...
+[2026-03-31 03:00:03]   -> Registros BD eliminados : 77
+[2026-03-31 03:00:03]   -> Imagenes fisicas borradas: 77
+[2026-03-31 03:00:03] Calculando puntuaciones de tendencia (trend_score)...
+[2026-03-31 03:00:03] Productos con trend_score >= 70 (DESTACADOS): 5
+[2026-03-31 03:00:03] Iniciando insercion/actualizacion en MariaDB...
+[2026-03-31 03:00:06] ------------------------------------------------------------
+[2026-03-31 03:00:06] SINCRONIZACION COMPLETADA:
+[2026-03-31 03:00:06]   -> Productos nuevos insertados : 81
+[2026-03-31 03:00:06]   -> Productos actualizados      : 15
+[2026-03-31 03:00:06]   -> Errores                     : 0
+[2026-03-31 03:00:06]   -> Total productos en catalogo : 121
+[2026-03-31 03:00:06]   -> Productos DESTACADOS        : 8
+[2026-03-31 03:00:06]   -> Paginas en el catalogo      : 11 (a 12 productos/pagina)
+[2026-03-31 03:00:06] ============================================================
+[2026-03-31 03:00:06] Fin de sincronizacion.
+[2026-04-01 03:00:01] ============================================================
+[2026-04-01 03:00:01] ALGORYA - Inicio de sincronizacion de catalogo
+[2026-04-01 03:00:01] ============================================================
+[2026-04-01 03:00:01] Conectando con FakeStoreAPI...
+[2026-04-01 03:00:01] AVISO: FakeStoreAPI devolvio respuesta invalida. Continuando con otras fuentes...
+[2026-04-01 03:00:01] Activando API de respaldo (Platzi Fake Store)...
+[2026-04-01 03:00:01] API respaldo: 20 productos obtenidos.
+[2026-04-01 03:00:02] Conectando con DummyJSON...
+[2026-04-01 03:00:03] DummyJSON: 76 productos obtenidos.
+[2026-04-01 03:00:03] Total productos obtenidos de todas las fuentes: 96
+[2026-04-01 03:00:03] Limpiando productos de API anteriores (datos nuevos confirmados)...
+[2026-04-01 03:00:03]   -> Registros BD eliminados : 76
+[2026-04-01 03:00:03]   -> Imagenes fisicas borradas: 76
+[2026-04-01 03:00:03] Calculando puntuaciones de tendencia (trend_score)...
+[2026-04-01 03:00:03] Productos con trend_score >= 70 (DESTACADOS): 11
+[2026-04-01 03:00:03] Iniciando insercion/actualizacion en MariaDB...
+[2026-04-01 03:00:06] ------------------------------------------------------------
+[2026-04-01 03:00:06] SINCRONIZACION COMPLETADA:
+[2026-04-01 03:00:06]   -> Productos nuevos insertados : 78
+[2026-04-01 03:00:06]   -> Productos actualizados      : 18
+[2026-04-01 03:00:06]   -> Errores                     : 0
+[2026-04-01 03:00:06]   -> Total productos en catalogo : 123
+[2026-04-01 03:00:06]   -> Productos DESTACADOS        : 13
+[2026-04-01 03:00:06]   -> Paginas en el catalogo      : 11 (a 12 productos/pagina)
+[2026-04-01 03:00:06] ============================================================
+[2026-04-01 03:00:06] Fin de sincronizacion.
+[2026-04-02 03:00:01] ============================================================
+[2026-04-02 03:00:01] ALGORYA - Inicio de sincronizacion de catalogo
+[2026-04-02 03:00:01] ============================================================
+[2026-04-02 03:00:01] Conectando con FakeStoreAPI...
+[2026-04-02 03:00:01] AVISO: FakeStoreAPI devolvio respuesta invalida. Continuando con otras fuentes...
+[2026-04-02 03:00:01] Activando API de respaldo (Platzi Fake Store)...
+[2026-04-02 03:00:02] API respaldo: 20 productos obtenidos.
+[2026-04-02 03:00:02] Conectando con DummyJSON...
+[2026-04-02 03:00:04] DummyJSON: 76 productos obtenidos.
+[2026-04-02 03:00:04] Total productos obtenidos de todas las fuentes: 96
+[2026-04-02 03:00:04] Limpiando productos de API anteriores (datos nuevos confirmados)...
+[2026-04-02 03:00:04]   -> Registros BD eliminados : 76
+[2026-04-02 03:00:04]   -> Imagenes fisicas borradas: 76
+[2026-04-02 03:00:04] Calculando puntuaciones de tendencia (trend_score)...
+[2026-04-02 03:00:04] Productos con trend_score >= 70 (DESTACADOS): 3
+[2026-04-02 03:00:04] Iniciando insercion/actualizacion en MariaDB...
+[2026-04-02 03:00:07] ------------------------------------------------------------
+[2026-04-02 03:00:07] SINCRONIZACION COMPLETADA:
+[2026-04-02 03:00:07]   -> Productos nuevos insertados : 96
+[2026-04-02 03:00:07]   -> Productos actualizados      : 0
+[2026-04-02 03:00:07]   -> Errores                     : 0
+[2026-04-02 03:00:07]   -> Total productos en catalogo : 143
+[2026-04-02 03:00:07]   -> Productos DESTACADOS        : 12
+[2026-04-02 03:00:07]   -> Paginas en el catalogo      : 12 (a 12 productos/pagina)
+[2026-04-02 03:00:07] ============================================================
+[2026-04-02 03:00:07] Fin de sincronizacion.
+[2026-04-03 03:00:01] ============================================================
+[2026-04-03 03:00:01] ALGORYA - Inicio de sincronizacion de catalogo
+[2026-04-03 03:00:01] ============================================================
+[2026-04-03 03:00:01] Conectando con FakeStoreAPI...
+[2026-04-03 03:00:01] AVISO: FakeStoreAPI devolvio respuesta invalida. Continuando con otras fuentes...
+[2026-04-03 03:00:01] Activando API de respaldo (Platzi Fake Store)...
+[2026-04-03 03:00:02] API respaldo: 20 productos obtenidos.
+[2026-04-03 03:00:02] Conectando con DummyJSON...
+[2026-04-03 03:00:03] DummyJSON: 76 productos obtenidos.
+[2026-04-03 03:00:03] Total productos obtenidos de todas las fuentes: 96
+[2026-04-03 03:00:03] Limpiando productos de API anteriores (datos nuevos confirmados)...
+[2026-04-03 03:00:03]   -> Registros BD eliminados : 93
+[2026-04-03 03:00:03]   -> Imagenes fisicas borradas: 82
+[2026-04-03 03:00:03] Calculando puntuaciones de tendencia (trend_score)...
+[2026-04-03 03:00:03] Productos con trend_score >= 70 (DESTACADOS): 2
+[2026-04-03 03:00:03] Iniciando insercion/actualizacion en MariaDB...
+[2026-04-03 03:00:07] ------------------------------------------------------------
+[2026-04-03 03:00:07] SINCRONIZACION COMPLETADA:
+[2026-04-03 03:00:07]   -> Productos nuevos insertados : 96
+[2026-04-03 03:00:07]   -> Productos actualizados      : 0
+[2026-04-03 03:00:07]   -> Errores                     : 0
+[2026-04-03 03:00:07]   -> Total productos en catalogo : 146
+[2026-04-03 03:00:07]   -> Productos DESTACADOS        : 11
+[2026-04-03 03:00:07]   -> Paginas en el catalogo      : 13 (a 12 productos/pagina)
+[2026-04-03 03:00:07] ============================================================
+[2026-04-03 03:00:07] Fin de sincronizacion.
+[2026-04-04 03:00:01] ============================================================
+[2026-04-04 03:00:01] ALGORYA - Inicio de sincronizacion de catalogo
+[2026-04-04 03:00:01] ============================================================
+[2026-04-04 03:00:01] Conectando con FakeStoreAPI...
+[2026-04-04 03:00:01] AVISO: FakeStoreAPI devolvio respuesta invalida. Continuando con otras fuentes...
+[2026-04-04 03:00:01] Activando API de respaldo (Platzi Fake Store)...
+[2026-04-04 03:00:02] API respaldo: 20 productos obtenidos.
+[2026-04-04 03:00:02] Conectando con DummyJSON...
+[2026-04-04 03:00:04] DummyJSON: 76 productos obtenidos.
+[2026-04-04 03:00:04] Total productos obtenidos de todas las fuentes: 96
+[2026-04-04 03:00:04] Limpiando productos de API anteriores (datos nuevos confirmados)...
+[2026-04-04 03:00:04]   -> Registros BD eliminados : 96
+[2026-04-04 03:00:04]   -> Imagenes fisicas borradas: 77
+[2026-04-04 03:00:04] Calculando puntuaciones de tendencia (trend_score)...
+[2026-04-04 03:00:04] Productos con trend_score >= 70 (DESTACADOS): 8
+[2026-04-04 03:00:04] Iniciando insercion/actualizacion en MariaDB...
+[2026-04-04 03:00:06] ------------------------------------------------------------
+[2026-04-04 03:00:06] SINCRONIZACION COMPLETADA:
+[2026-04-04 03:00:06]   -> Productos nuevos insertados : 76
+[2026-04-04 03:00:06]   -> Productos actualizados      : 20
+[2026-04-04 03:00:06]   -> Errores                     : 0
+[2026-04-04 03:00:06]   -> Total productos en catalogo : 126
+[2026-04-04 03:00:06]   -> Productos DESTACADOS        : 11
+[2026-04-04 03:00:06]   -> Paginas en el catalogo      : 11 (a 12 productos/pagina)
+[2026-04-04 03:00:06] ============================================================
+[2026-04-04 03:00:06] Fin de sincronizacion.
+[2026-04-05 03:00:01] ============================================================
+[2026-04-05 03:00:01] ALGORYA - Inicio de sincronizacion de catalogo
+[2026-04-05 03:00:01] ============================================================
+[2026-04-05 03:00:01] Conectando con FakeStoreAPI...
+[2026-04-05 03:00:01] AVISO: FakeStoreAPI devolvio respuesta invalida. Continuando con otras fuentes...
+[2026-04-05 03:00:01] Activando API de respaldo (Platzi Fake Store)...
+[2026-04-05 03:00:03] API respaldo: 20 productos obtenidos.
+[2026-04-05 03:00:03] Conectando con DummyJSON...
+[2026-04-05 03:00:04] DummyJSON: 76 productos obtenidos.
+[2026-04-05 03:00:04] Total productos obtenidos de todas las fuentes: 96
+[2026-04-05 03:00:04] Limpiando productos de API anteriores (datos nuevos confirmados)...
+[2026-04-05 03:00:04]   -> Registros BD eliminados : 76
+[2026-04-05 03:00:04]   -> Imagenes fisicas borradas: 76
+[2026-04-05 03:00:04] Calculando puntuaciones de tendencia (trend_score)...
+[2026-04-05 03:00:04] Productos con trend_score >= 70 (DESTACADOS): 6
+[2026-04-05 03:00:04] Iniciando insercion/actualizacion en MariaDB...
+[2026-04-05 03:00:07] ------------------------------------------------------------
+[2026-04-05 03:00:07] SINCRONIZACION COMPLETADA:
+[2026-04-05 03:00:07]   -> Productos nuevos insertados : 77
+[2026-04-05 03:00:07]   -> Productos actualizados      : 19
+[2026-04-05 03:00:07]   -> Errores                     : 0
+[2026-04-05 03:00:07]   -> Total productos en catalogo : 127
+[2026-04-05 03:00:07]   -> Productos DESTACADOS        : 12
+[2026-04-05 03:00:07]   -> Paginas en el catalogo      : 11 (a 12 productos/pagina)
+[2026-04-05 03:00:07] ============================================================
+[2026-04-05 03:00:07] Fin de sincronizacion.
+[2026-04-06 03:00:02] ============================================================
+[2026-04-06 03:00:02] ALGORYA - Inicio de sincronizacion de catalogo
+[2026-04-06 03:00:02] ============================================================
+[2026-04-06 03:00:02] Conectando con FakeStoreAPI...
+[2026-04-06 03:00:02] AVISO: FakeStoreAPI devolvio respuesta invalida. Continuando con otras fuentes...
+[2026-04-06 03:00:02] Activando API de respaldo (Platzi Fake Store)...
+[2026-04-06 03:00:02] API respaldo: 20 productos obtenidos.
+[2026-04-06 03:00:02] Conectando con DummyJSON...
+[2026-04-06 03:00:04] DummyJSON: 76 productos obtenidos.
+[2026-04-06 03:00:04] Total productos obtenidos de todas las fuentes: 96
+[2026-04-06 03:00:04] Limpiando productos de API anteriores (datos nuevos confirmados)...
+[2026-04-06 03:00:04]   -> Registros BD eliminados : 77
+[2026-04-06 03:00:04]   -> Imagenes fisicas borradas: 77
+[2026-04-06 03:00:04] Calculando puntuaciones de tendencia (trend_score)...
+[2026-04-06 03:00:04] Productos con trend_score >= 70 (DESTACADOS): 4
+[2026-04-06 03:00:04] Iniciando insercion/actualizacion en MariaDB...
+[2026-04-06 03:00:06] ------------------------------------------------------------
+[2026-04-06 03:00:06] SINCRONIZACION COMPLETADA:
+[2026-04-06 03:00:06]   -> Productos nuevos insertados : 77
+[2026-04-06 03:00:06]   -> Productos actualizados      : 19
+[2026-04-06 03:00:06]   -> Errores                     : 0
+[2026-04-06 03:00:06]   -> Total productos en catalogo : 127
+[2026-04-06 03:00:06]   -> Productos DESTACADOS        : 5
+[2026-04-06 03:00:06]   -> Paginas en el catalogo      : 11 (a 12 productos/pagina)
+[2026-04-06 03:00:06] ============================================================
+[2026-04-06 03:00:06] Fin de sincronizacion.
+[2026-04-07 03:00:01] ============================================================
+[2026-04-07 03:00:01] ALGORYA - Inicio de sincronizacion de catalogo
+[2026-04-07 03:00:01] ============================================================
+[2026-04-07 03:00:01] Conectando con FakeStoreAPI...
+[2026-04-07 03:00:01] AVISO: FakeStoreAPI devolvio respuesta invalida. Continuando con otras fuentes...
+[2026-04-07 03:00:01] Activando API de respaldo (Platzi Fake Store)...
+[2026-04-07 03:00:02] API respaldo: 20 productos obtenidos.
+[2026-04-07 03:00:02] Conectando con DummyJSON...
+[2026-04-07 03:00:03] DummyJSON: 76 productos obtenidos.
+[2026-04-07 03:00:03] Total productos obtenidos de todas las fuentes: 96
+[2026-04-07 03:00:03] Limpiando productos de API anteriores (datos nuevos confirmados)...
+[2026-04-07 03:00:03]   -> Registros BD eliminados : 77
+[2026-04-07 03:00:03]   -> Imagenes fisicas borradas: 77
+[2026-04-07 03:00:03] Calculando puntuaciones de tendencia (trend_score)...
+[2026-04-07 03:00:03] Productos con trend_score >= 70 (DESTACADOS): 11
+[2026-04-07 03:00:03] Iniciando insercion/actualizacion en MariaDB...
+[2026-04-07 03:00:06] ------------------------------------------------------------
+[2026-04-07 03:00:06] SINCRONIZACION COMPLETADA:
+[2026-04-07 03:00:06]   -> Productos nuevos insertados : 76
+[2026-04-07 03:00:06]   -> Productos actualizados      : 20
+[2026-04-07 03:00:06]   -> Errores                     : 0
+[2026-04-07 03:00:06]   -> Total productos en catalogo : 126
+[2026-04-07 03:00:06]   -> Productos DESTACADOS        : 11
+[2026-04-07 03:00:06]   -> Paginas en el catalogo      : 11 (a 12 productos/pagina)
+[2026-04-07 03:00:06] ============================================================
+[2026-04-07 03:00:06] Fin de sincronizacion.
