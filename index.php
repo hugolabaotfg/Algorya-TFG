@@ -239,24 +239,24 @@ $sep = str_contains($url_sin_lang, '?') ? '&' : '?';
         <div class="premium-card admin-card rounded-4 p-3">
             <div class="row g-2 align-items-end">
                 <div class="col-12 col-md-4">
-                    <label class="form-label premium-muted fw-bold text-uppercase mb-1" style="font-size:.68rem;letter-spacing:.05em;"><i class="bi bi-search me-1"></i><?= t('filtro_buscar') ?></label>
-                    <input type="text" name="nombre" class="form-control premium-input shadow-none" placeholder="<?= t('filtro_nombre_placeholder') ?>" value="<?= htmlspecialchars($f_nombre) ?>">
+                    <label class="form-label premium-muted fw-bold text-uppercase mb-1" style="font-size:.68rem;letter-spacing:.05em;"><i class="bi bi-search me-1"></i>Buscar</label>
+                    <input type="text" name="nombre" class="form-control premium-input shadow-none" placeholder="Nombre del producto..." value="<?= htmlspecialchars($f_nombre) ?>">
                 </div>
                 <div class="col-6 col-md-2">
-                    <label class="form-label premium-muted fw-bold text-uppercase mb-1" style="font-size:.68rem;letter-spacing:.05em;"><?= t('filtro_precio_min') ?></label>
+                    <label class="form-label premium-muted fw-bold text-uppercase mb-1" style="font-size:.68rem;letter-spacing:.05em;">Precio mín.</label>
                     <input type="number" name="precio_min" class="form-control premium-input shadow-none" min="0" value="<?= $f_precio_min ?>">
                 </div>
                 <div class="col-6 col-md-2">
-                    <label class="form-label premium-muted fw-bold text-uppercase mb-1" style="font-size:.68rem;letter-spacing:.05em;"><?= t('filtro_precio_max') ?></label>
+                    <label class="form-label premium-muted fw-bold text-uppercase mb-1" style="font-size:.68rem;letter-spacing:.05em;">Precio máx.</label>
                     <input type="number" name="precio_max" class="form-control premium-input shadow-none" min="0" value="<?= $f_precio_max ?>">
                 </div>
                 <div class="col-8 col-md-3">
-                    <label class="form-label premium-muted fw-bold text-uppercase mb-1" style="font-size:.68rem;letter-spacing:.05em;"><?= t('filtro_ordenar') ?></label>
+                    <label class="form-label premium-muted fw-bold text-uppercase mb-1" style="font-size:.68rem;letter-spacing:.05em;">Ordenar por</label>
                     <select name="orden" class="form-select premium-input shadow-none">
-                        <option value="trend_score" <?= $f_orden==='trend_score'?'selected':'' ?>><?= t('filtro_tendencia') ?></option>
-                        <option value="precio_asc"  <?= $f_orden==='precio_asc' ?'selected':'' ?>><?= t('filtro_precio_asc') ?></option>
-                        <option value="precio_desc" <?= $f_orden==='precio_desc'?'selected':'' ?>><?= t('filtro_precio_desc') ?></option>
-                        <option value="nombre_asc"  <?= $f_orden==='nombre_asc' ?'selected':'' ?>><?= t('filtro_nombre_az') ?></option>
+                        <option value="trend_score" <?= $f_orden==='trend_score'?'selected':'' ?>>Tendencia primero</option>
+                        <option value="precio_asc"  <?= $f_orden==='precio_asc' ?'selected':'' ?>>Precio: menor primero</option>
+                        <option value="precio_desc" <?= $f_orden==='precio_desc'?'selected':'' ?>>Precio: mayor primero</option>
+                        <option value="nombre_asc"  <?= $f_orden==='nombre_asc' ?'selected':'' ?>>Nombre A→Z</option>
                     </select>
                 </div>
                 <div class="col-4 col-md-1 d-flex align-items-end">
@@ -303,7 +303,7 @@ $sep = str_contains($url_sin_lang, '?') ? '&' : '?';
                             <input type="hidden" name="imagen"   value="<?= htmlspecialchars($row['imagen']) ?>">
                             <input type="hidden" name="cantidad" value="1">
                             <button type="submit" class="btn btn-premium-add w-100 rounded-pill fw-bold py-2 shadow-sm btn-submit-cart" style="font-size:.82rem;">
-                                <i class="bi bi-cart-plus me-1"></i><?= t('btn_anadir_carrito') ?>
+                                <i class="bi bi-cart-plus me-1"></i><?= t('btn_anadir_carro') ?>
                             </button>
                         </form>
                         <?php endif; ?>
@@ -317,7 +317,7 @@ $sep = str_contains($url_sin_lang, '?') ? '&' : '?';
             <div class="alert premium-card text-center py-5 rounded-4">
                 <i class="bi bi-inbox fs-1 premium-muted"></i>
                 <h5 class="mt-3 fw-bold premium-text"><?= t('catalogo_vacio_titulo') ?></h5>
-                <p class="premium-muted mb-0"><?= t('catalogo_vacio_subtitulo') ?></p>
+                <p class="premium-muted mb-0"><?= t('catalogo_vacio_texto') ?></p>
             </div>
         </div>
     <?php endif; ?>
@@ -348,8 +348,8 @@ $sep = str_contains($url_sin_lang, '?') ? '&' : '?';
 <footer class="text-center py-5 mt-auto" style="border-top:1px solid var(--border-color);">
     <div class="container">
         <h5 class="fw-bold premium-text mb-3"><i class="bi bi-box-seam-fill text-primary"></i> Algorya</h5>
-        <p class="mb-1 fw-medium premium-text opacity-75">© <?= date("Y") ?> <?= t('footer_derechos') ?></p>
-        <p class="mb-0 premium-muted small fw-bold"><?= t('footer_autor') ?></p>
+        <p class="mb-1 fw-medium premium-text opacity-75">© <?= date("Y") ?> Todos los derechos reservados.</p>
+        <p class="mb-0 premium-muted small fw-bold">Proyecto Final de Grado de ASIR realizado por Hugo Labao González</p>
     </div>
 </footer>
 
@@ -362,20 +362,25 @@ $sep = str_contains($url_sin_lang, '?') ? '&' : '?';
                 <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
             </div>
             <div class="modal-body p-4 pt-2">
-                <h4 class="fw-bold mb-4 premium-text"><?= t('login_bienvenido') ?></h4>
+                <h4 class="fw-bold mb-4 premium-text">Bienvenido de nuevo</h4>
                 <form action="login.php" method="POST">
                     <div class="mb-3">
-                        <label class="form-label premium-muted small fw-bold"><?= t('login_email') ?></label>
+                        <label class="form-label premium-muted small fw-bold"><?= t('modal_login_email') ?></label>
                         <input type="email" name="email" class="form-control form-control-lg premium-input shadow-none" required>
                     </div>
                     <div class="mb-4">
-                        <label class="form-label premium-muted small fw-bold"><?= t('login_password') ?></label>
+                        <label class="form-label premium-muted small fw-bold"><?= t('modal_login_password') ?></label>
                         <input type="password" name="password" class="form-control form-control-lg premium-input shadow-none" required>
                     </div>
-                    <button type="submit" name="login" class="btn btn-primary w-100 btn-lg rounded-pill fw-bold shadow-sm" style="background:#3b82f6;border:none;"><?= t('login_btn') ?></button>
+                    <button type="submit" name="login" class="btn btn-primary w-100 btn-lg rounded-pill fw-bold shadow-sm" style="background:#3b82f6;border:none;"><?= t('modal_login_btn') ?></button>
                 </form>
-                <div class="text-center mt-4">
-                    <span class="premium-muted small"><?= t('login_sin_cuenta') ?> <a href="registro.php" class="text-primary text-decoration-none fw-bold"><?= t('login_registrate') ?></a></span>
+                <div class="text-center mt-3">
+                    <a href="recuperar_password.php" class="text-decoration-none premium-muted" style="font-size:.82rem;">
+                        ¿Olvidaste tu contraseña?
+                    </a>
+                </div>
+                <div class="text-center mt-3">
+                    <span class="premium-muted small"><?= t('modal_login_sin_cuenta') ?> <a href="registro.php" class="text-primary text-decoration-none fw-bold"><?= t('modal_login_registro') ?></a></span>
                 </div>
             </div>
         </div>
@@ -386,7 +391,7 @@ $sep = str_contains($url_sin_lang, '?') ? '&' : '?';
 <div class="toast-container position-fixed bottom-0 end-0 p-4" style="z-index:1050;">
     <div id="cartToast" class="toast align-items-center text-white bg-success border-0 shadow-lg" role="alert" data-bs-delay="3000">
         <div class="d-flex">
-            <div class="toast-body fw-bold fs-6"><i class="bi bi-check-circle-fill me-2"></i><?= t('toast_carrito') ?></div>
+            <div class="toast-body fw-bold fs-6"><i class="bi bi-check-circle-fill me-2"></i>¡Añadido al carrito con éxito!</div>
             <button type="button" class="btn-close btn-close-white me-3 m-auto" data-bs-dismiss="toast"></button>
         </div>
     </div>
