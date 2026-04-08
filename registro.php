@@ -1,4 +1,7 @@
 <?php
+ini_set('display_errors', 1);
+ini_set('display_startup_errors', 1);
+error_reporting(E_ALL);
 session_start();
 require 'includes/lang.php';
 require 'includes/db.php';
@@ -42,7 +45,8 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         $stmt_check->store_result();
 
         if ($stmt_check->num_rows > 0) {
-            $mensaje     = t('error_generico');
+            // Quitamos el error genérico para que el usuario sepa qué pasa
+            $mensaje     = "Este correo electrónico ya está registrado. Por favor, inicia sesión."; 
             $tipo_alerta = "warning";
             $stmt_check->close();
         } else {
@@ -51,13 +55,26 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
             $password_hashed = password_hash($password, PASSWORD_DEFAULT);
             $token           = bin2hex(random_bytes(16));
 
+            // ¡ESTO ERA LO QUE FALTABA! La preparación de la consulta:
             $stmt_insert = $conn->prepare(
                 "INSERT INTO usuarios (nombre, email, password, rol, verificado, token_verificacion)
                  VALUES (?, ?, ?, 'cliente', 0, ?)"
             );
             $stmt_insert->bind_param("ssss", $nombre, $email, $password_hashed, $token);
 
+            // Ahora sí, la ejecución no dará error de variable indefinida
             if ($stmt_insert->execute()) {
+                $nuevo_usuario_id = $stmt_insert->insert_id;
+
+                // Vinculamos los productos del carrito temporal de visitante a la nueva cuenta
+                if (isset($_SESSION['carrito_token'])) {
+                    $token_carrito = $_SESSION['carrito_token'];
+                    $stmt_carrito = $conn->prepare("UPDATE carritos SET usuario_id = ? WHERE token_sesion = ?");
+                    $stmt_carrito->bind_param("is", $nuevo_usuario_id, $token_carrito);
+                    $stmt_carrito->execute();
+                    $stmt_carrito->close();
+                }
+
                 // EMAIL de verificación via Brevo (PHPMailer)
                 require_once __DIR__ . '/includes/mailer.php';
                 mail_verificacion($email, $nombre, $token);
@@ -65,7 +82,8 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                 $mensaje     = t('exito_generico');
                 $tipo_alerta = "success";
             } else {
-                $mensaje     = t('error_generico');
+                // MODO DEPURACIÓN
+                $mensaje     = "Error de Base de Datos: " . $stmt_insert->error;
                 $tipo_alerta = "danger";
             }
             $stmt_insert->close();

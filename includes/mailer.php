@@ -11,7 +11,7 @@
 // =============================================================================
 
 // Cargar las claves secretas (Este archivo debe estar en el .gitignore)
-require_once 'claves_smtp.php';
+require_once __DIR__ . '/claves_smtp.php';
 
 use PHPMailer\PHPMailer\PHPMailer;
 use PHPMailer\PHPMailer\SMTP;

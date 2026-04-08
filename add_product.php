@@ -7,7 +7,7 @@ if (!isset($_SESSION['rol']) || $_SESSION['rol'] !== 'admin') {
 }
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['guardar'])) {
-    $nombre = $conn->real_escape_string($_POST['nombre']);
+    $nombre = trim($_POST['nombre']);
     $precio = (float) $_POST['precio'];
     $stock = (int) $_POST['stock'];
 
@@ -19,7 +19,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['guardar'])) {
         move_uploaded_file($_FILES['foto']['tmp_name'], 'img/' . $foto);
     }
 
-    $conn->query("INSERT INTO productos (nombre, precio, stock, imagen) VALUES ('$nombre', $precio, $stock, '$foto')");
+    $stmt_ins = $conn->prepare("INSERT INTO productos (nombre, precio, stock, imagen) VALUES (?, ?, ?, ?)");
+    $stmt_ins->bind_param("sdis", $nombre, $precio, $stock, $foto);
+    $stmt_ins->execute();
+    $stmt_ins->close();
     header("Location: index.php");
 }
 ?>

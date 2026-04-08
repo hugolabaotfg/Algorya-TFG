@@ -233,109 +233,18 @@ register_shutdown_function(function() {
 });
 
 // =============================================================================
-// FUENTE 1: FakeStoreAPI (20 productos — Ropa, electronica, joyeria)
+// FUENTE ÚNICA: DummyJSON (194 productos disponibles, imágenes fiables)
+// Cogemos 96 productos en 4 páginas de 24 productos cada una.
+// DummyJSON sirve sus imágenes desde cdn.dummyjson.com — nunca fallan.
 // =============================================================================
-log_msg("Conectando con FakeStoreAPI...");
-
-$ch = curl_init("https://fakestoreapi.com/products");
-curl_setopt_array($ch, [
-    CURLOPT_RETURNTRANSFER => true,
-    CURLOPT_TIMEOUT        => 20,
-    CURLOPT_SSL_VERIFYPEER => false,
-    CURLOPT_USERAGENT      => 'Algorya-Bot/1.0',
-]);
-$json = curl_exec($ch);
-curl_close($ch);
-
-if ($json) {
-    $productos = json_decode($json, true);
-    if (is_array($productos) && count($productos) > 0) {
-        foreach ($productos as $p) {
-            $todos_productos[] = [
-                'nombre'      => $p['title']       ?? 'Producto sin nombre',
-                'descripcion' => substr($p['description'] ?? '', 0, 200),
-                'precio'      => (float)($p['price'] ?? 9.99),
-                'imagen_url'  => $p['image']        ?? '',
-                'categoria'   => $p['category']     ?? 'general',
-                'rating'      => (float)($p['rating']['rate']  ?? 3.5),
-                'reviews'     => (int)($p['rating']['count']   ?? 50),
-                'fuente'      => 'fakestore',
-            ];
-        }
-        log_msg("FakeStoreAPI: " . count($productos) . " productos obtenidos.");
-    } else {
-        log_msg("AVISO: FakeStoreAPI devolvio respuesta invalida. Continuando con otras fuentes...");
-    }
-} else {
-    log_msg("AVISO: FakeStoreAPI no respondio. Continuando con otras fuentes...");
-}
-
-// ─────────────────────────────────────────────────────────────────────────────
-// AUTO-RECUPERACION: Si FakeStoreAPI fallo, usar API de respaldo
-// para completar los 96 productos objetivo.
-// ─────────────────────────────────────────────────────────────────────────────
-if (count($todos_productos) === 0) {
-    log_msg("Activando API de respaldo (Platzi Fake Store)...");
-    $ch_backup = curl_init("https://api.escuelajs.co/api/v1/products?offset=0&limit=20");
-    curl_setopt_array($ch_backup, [
-        CURLOPT_RETURNTRANSFER => true,
-        CURLOPT_TIMEOUT        => 20,
-        CURLOPT_SSL_VERIFYPEER => false,
-        CURLOPT_USERAGENT      => 'Algorya-Bot/1.0',
-    ]);
-    $json_backup = curl_exec($ch_backup);
-    curl_close($ch_backup);
-
-    if ($json_backup) {
-        $productos_backup = json_decode($json_backup, true);
-        if (is_array($productos_backup) && count($productos_backup) > 0) {
-            foreach ($productos_backup as $p) {
-                $imagenes = $p['images'] ?? [];
-                $img_url  = !empty($imagenes) ? $imagenes[0] : '';
-                // Platzi a veces devuelve URLs con comillas — limpiarlas
-                $img_url  = trim($img_url, '"[]');
-                $todos_productos[] = [
-                    'nombre'      => $p['title']       ?? 'Producto sin nombre',
-                    'descripcion' => substr($p['description'] ?? '', 0, 200),
-                    'precio'      => (float)($p['price'] ?? 9.99),
-                    'imagen_url'  => $img_url,
-                    'categoria'   => $p['category']['name'] ?? 'general',
-                    'rating'      => 4.0,
-                    'reviews'     => rand(50, 300),
-                    'fuente'      => 'fakestore',
-                ];
-            }
-            log_msg("API respaldo: " . count($productos_backup) . " productos obtenidos.");
-
-            // Notificar al admin que se usó el respaldo
-            if (file_exists(__DIR__ . '/vendor/autoload.php')) {
-                require_once __DIR__ . '/includes/mailer.php';
-                mail_alerta_sync(
-                    "FakeStoreAPI no respondio. Se ha usado la API de respaldo automaticamente.\n" .
-                    "El catalogo se ha sincronizado correctamente con " . count($todos_productos) . " productos.\n" .
-                    "No se requiere accion inmediata."
-                );
-            }
-        } else {
-            log_msg("AVISO: API de respaldo tambien fallo. Solo se usara DummyJSON.");
-        }
-    }
-}
-
-// =============================================================================
-// FUENTE 2: DummyJSON (100 productos en 5 paginas de 20 — Gran variedad)
-// =============================================================================
-log_msg("Conectando con DummyJSON...");
+log_msg("Conectando con DummyJSON (fuente principal)...");
 
 $dummyjson_total = 0;
-// Necesitamos 96 productos totales (8 paginas x 12).
-// FakeStoreAPI da 20, por lo que DummyJSON debe dar 76.
-// Hacemos 3 paginas de 20 (60) + 1 pagina de 16 = 76 productos.
 $dummyjson_config = [
-    ['limit' => 20, 'skip' => 0],
-    ['limit' => 20, 'skip' => 20],
-    ['limit' => 20, 'skip' => 40],
-    ['limit' => 16, 'skip' => 60],  // Ultima pagina: solo 16 para llegar a 76
+    ['limit' => 24, 'skip' => 0],
+    ['limit' => 24, 'skip' => 24],
+    ['limit' => 24, 'skip' => 48],
+    ['limit' => 24, 'skip' => 72],
 ];
 
 foreach ($dummyjson_config as $cfg) {
@@ -401,6 +310,7 @@ $res_imgs = $conn->query(
     "SELECT imagen FROM productos
      WHERE imagen LIKE 'fakestore_%'
         OR imagen LIKE 'dummyjson_%'
+        OR imagen LIKE 'platzi_%'
         OR imagen LIKE 'api_%'"
 );
 $imagenes_a_borrar = [];
@@ -412,6 +322,7 @@ $conn->query(
     "DELETE FROM productos
      WHERE imagen LIKE 'fakestore_%'
         OR imagen LIKE 'dummyjson_%'
+        OR imagen LIKE 'platzi_%'
         OR imagen LIKE 'api_%'"
 );
 $borrados_bd  = $conn->affected_rows;
@@ -486,6 +397,13 @@ foreach ($todos_productos as $prod) {
     // Descargar imagen al servidor local
     $prefijo_fuente = $prod['fuente'];
     $imagen = descargar_imagen($prod['imagen_url'], $prefijo_fuente);
+
+    // Si la imagen falló, saltar este producto — no queremos productos sin foto
+    if ($imagen === 'default.jpg') {
+        log_msg("  SALTADO '{$nombre}': imagen no disponible ({$prod['imagen_url']})");
+        $total_errores++;
+        continue;
+    }
 
     // Comprobar si el producto ya existe
     $stmt_check->bind_param("s", $nombre);
