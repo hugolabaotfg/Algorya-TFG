@@ -30,8 +30,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['cambiar_rol'])) {
     if ($uid !== (int)$_SESSION['user_id'] && in_array($nuevo_rol, ['cliente','admin'])) {
         $stmt = $conn->prepare("UPDATE usuarios SET rol = ? WHERE id = ?");
         $stmt->bind_param("si", $nuevo_rol, $uid);
-        $mensaje     = $stmt->execute() ? "Rol actualizado correctamente." : "Error al actualizar.";
-        $tipo_alerta = $stmt->execute() ? "success" : "danger";
+        $ok          = $stmt->execute();
+        $mensaje     = $ok ? "Rol actualizado correctamente." : "Error al actualizar.";
+        $tipo_alerta = $ok ? "success" : "danger";
         $stmt->close();
     } else {
         $mensaje = "No puedes modificar tu propio rol."; $tipo_alerta = "warning";

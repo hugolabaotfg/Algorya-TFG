@@ -61,17 +61,37 @@ $f_orden      = $_GET['orden'] ?? 'trend_score';
 $ordenes_ok   = ['trend_score'=>'trend_score DESC','precio_asc'=>'precio ASC','precio_desc'=>'precio DESC','nombre_asc'=>'nombre ASC'];
 $orden_sql    = $ordenes_ok[$f_orden] ?? 'trend_score DESC';
 
-$where = "activo = 1 AND precio BETWEEN $f_precio_min AND $f_precio_max";
-if ($f_nombre !== '') $where .= " AND nombre LIKE '%" . $conn->real_escape_string($f_nombre) . "%'";
+// ─── FILTRO: construir WHERE con parámetros preparados ───────────────────────
+$filter_types  = 'dd';
+$filter_params = [$f_precio_min, $f_precio_max];
+$where_parts   = ['activo = 1', 'precio BETWEEN ? AND ?'];
+if ($f_nombre !== '') {
+    $where_parts[]   = 'nombre LIKE ?';
+    $filter_types   .= 's';
+    $filter_params[] = "%$f_nombre%";
+}
+$where_sql = implode(' AND ', $where_parts);
 
 // ─── PAGINACIÓN ──────────────────────────────────────────────────────────────
-$por_pagina   = 12;
+$por_pagina    = 12;
 $pagina_actual = max(1, (int)($_GET['pagina'] ?? 1));
-$total        = (int)$conn->query("SELECT COUNT(*) as t FROM productos WHERE $where")->fetch_assoc()['t'];
+
+$stmt_count = $conn->prepare("SELECT COUNT(*) as t FROM productos WHERE $where_sql");
+$stmt_count->bind_param($filter_types, ...$filter_params);
+$stmt_count->execute();
+$total = (int)$stmt_count->get_result()->fetch_assoc()['t'];
+$stmt_count->close();
+
 $total_paginas = max(1, ceil($total / $por_pagina));
 if ($pagina_actual > $total_paginas) $pagina_actual = $total_paginas;
-$offset   = ($pagina_actual - 1) * $por_pagina;
-$resultado = $conn->query("SELECT * FROM productos WHERE $where ORDER BY $orden_sql LIMIT $por_pagina OFFSET $offset");
+$offset = ($pagina_actual - 1) * $por_pagina;
+
+$all_params = array_merge($filter_params, [$por_pagina, $offset]);
+$stmt_prod  = $conn->prepare("SELECT * FROM productos WHERE $where_sql ORDER BY $orden_sql LIMIT ? OFFSET ?");
+$stmt_prod->bind_param($filter_types . 'ii', ...$all_params);
+$stmt_prod->execute();
+$resultado = $stmt_prod->get_result();
+$stmt_prod->close();
 
 $params = array_filter(['nombre'=>$f_nombre,'precio_min'=>$f_precio_min ?: null,'precio_max'=>$f_precio_max != 9999 ? $f_precio_max : null,'orden'=>$f_orden !== 'trend_score' ? $f_orden : null,'lang'=>$_GET['lang'] ?? null]);
 $base_url = '?' . ($params ? http_build_query($params) . '&' : '');
