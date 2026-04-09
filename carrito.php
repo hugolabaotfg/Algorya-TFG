@@ -192,8 +192,7 @@ if (isset($_SESSION['user_id'])) {
                         </span>
                     </h3>
                     <div class="d-flex gap-2">
-                        <form action="carrito.php" method="POST" class="m-0"
-                            onsubmit="return confirm('<?= t('carrito_vaciar_confirm') ?>');">
+                        <form action="carrito.php" method="POST" class="m-0">
                             <button type="submit" name="vaciar" class="btn btn-outline-danger rounded-pill px-4">
                                 <i class="bi bi-trash me-1"></i>
                                 <?= t('carrito_vaciar') ?>
