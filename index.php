@@ -61,37 +61,38 @@ $f_orden      = $_GET['orden'] ?? 'trend_score';
 $ordenes_ok   = ['trend_score'=>'trend_score DESC','precio_asc'=>'precio ASC','precio_desc'=>'precio DESC','nombre_asc'=>'nombre ASC'];
 $orden_sql    = $ordenes_ok[$f_orden] ?? 'trend_score DESC';
 
-// ─── FILTRO: construir WHERE con parámetros preparados ───────────────────────
-$filter_types  = 'dd';
-$filter_params = [$f_precio_min, $f_precio_max];
-$where_parts   = ['activo = 1', 'precio BETWEEN ? AND ?'];
-if ($f_nombre !== '') {
-    $where_parts[]   = 'nombre LIKE ?';
-    $filter_types   .= 's';
-    $filter_params[] = "%$f_nombre%";
-}
-$where_sql = implode(' AND ', $where_parts);
-
-// ─── PAGINACIÓN ──────────────────────────────────────────────────────────────
+// ─── PAGINACIÓN CON PREPARED STATEMENTS ─────────────────────────────────────
 $por_pagina    = 12;
 $pagina_actual = max(1, (int)($_GET['pagina'] ?? 1));
 
-$stmt_count = $conn->prepare("SELECT COUNT(*) as t FROM productos WHERE $where_sql");
-$stmt_count->bind_param($filter_types, ...$filter_params);
-$stmt_count->execute();
-$total = (int)$stmt_count->get_result()->fetch_assoc()['t'];
-$stmt_count->close();
+$where_base  = "activo = 1 AND precio BETWEEN ? AND ? AND imagen != 'default.jpg' AND imagen != '0' AND imagen != ''";
+$tipos_w     = "dd";
+$params_w    = [$f_precio_min, $f_precio_max];
+
+if ($f_nombre !== '') {
+    $where_base .= " AND nombre LIKE ?";
+    $tipos_w    .= "s";
+    $params_w[]  = "%$f_nombre%";
+}
+
+// Total
+$st = $conn->prepare("SELECT COUNT(*) as t FROM productos WHERE $where_base");
+$st->bind_param($tipos_w, ...$params_w);
+$st->execute();
+$total = (int)$st->get_result()->fetch_assoc()['t'];
+$st->close();
 
 $total_paginas = max(1, ceil($total / $por_pagina));
 if ($pagina_actual > $total_paginas) $pagina_actual = $total_paginas;
 $offset = ($pagina_actual - 1) * $por_pagina;
 
-$all_params = array_merge($filter_params, [$por_pagina, $offset]);
-$stmt_prod  = $conn->prepare("SELECT * FROM productos WHERE $where_sql ORDER BY $orden_sql LIMIT ? OFFSET ?");
-$stmt_prod->bind_param($filter_types . 'ii', ...$all_params);
-$stmt_prod->execute();
-$resultado = $stmt_prod->get_result();
-$stmt_prod->close();
+// Resultados paginados
+$st2 = $conn->prepare("SELECT * FROM productos WHERE $where_base ORDER BY $orden_sql LIMIT ? OFFSET ?");
+$tipos_w2    = $tipos_w . "ii";
+$params_w2   = array_merge($params_w, [$por_pagina, $offset]);
+$st2->bind_param($tipos_w2, ...$params_w2);
+$st2->execute();
+$resultado = $st2->get_result();
 
 $params = array_filter(['nombre'=>$f_nombre,'precio_min'=>$f_precio_min ?: null,'precio_max'=>$f_precio_max != 9999 ? $f_precio_max : null,'orden'=>$f_orden !== 'trend_score' ? $f_orden : null,'lang'=>$_GET['lang'] ?? null]);
 $base_url = '?' . ($params ? http_build_query($params) . '&' : '');
@@ -107,6 +108,11 @@ $sep = str_contains($url_sin_lang, '?') ? '&' : '?';
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Algorya | <?= t('catalogo_titulo') ?></title>
+    <?php
+    $seo_titulo      = t('catalogo_titulo');
+    $seo_descripcion = 'Algorya rastrea el mercado global para traerte los productos top ventas antes que nadie. Compra tendencias al mejor precio.';
+    require 'includes/seo.php';
+    ?>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;600;700;900&display=swap" rel="stylesheet">
@@ -127,7 +133,9 @@ $sep = str_contains($url_sin_lang, '?') ? '&' : '?';
             <div style="width:30px;height:30px;border-radius:8px;background:linear-gradient(135deg,#3b82f6,#6366f1);display:flex;align-items:center;justify-content:center;flex-shrink:0;">
                 <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M8 1L13 14H10.5L9.5 11H6.5L5.5 14H3L8 1ZM7.2 9H8.8L8 6.5Z" fill="white"/></svg>
             </div>
-            <span class="fw-black text-primary" style="font-family:'Outfit',sans-serif;font-size:1.2rem;letter-spacing:-.04em;">Algorya</span><span class="premium-muted" style="font-size:.6rem;font-weight:500;margin-left:1px;">.store</span>
+            <div class="d-flex align-items-baseline gap-1">
+                <span class="fw-black text-primary" style="font-family:'Outfit',sans-serif;font-size:1.2rem;letter-spacing:-.04em;">Algorya</span><span class="premium-muted fw-semibold" style="font-size:.75rem;letter-spacing:.01em;">.store</span>
+            </div>
         </a>
 
         <!-- Móvil: iconos + hamburguesa -->
@@ -138,7 +146,7 @@ $sep = str_contains($url_sin_lang, '?') ? '&' : '?';
             <?php if (!isset($_SESSION['rol']) || $_SESSION['rol'] !== 'admin'): ?>
             <a href="carrito.php" class="btn btn-outline-primary btn-sm rounded-pill position-relative d-flex align-items-center justify-content-center" style="width:34px;height:34px;padding:0;">
                 <i class="bi bi-cart3" style="font-size:.85rem;"></i>
-                <span class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger" style="font-size:.55rem;" <?= $contador_carrito > 0 ? '' : 'style="display:none;"' ?>><?= $contador_carrito ?></span>
+                <span id="cart-badge-mobile" class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger" style="font-size:.55rem;<?= $contador_carrito > 0 ? '' : 'display:none;' ?>"><?= $contador_carrito ?></span>
             </a>
             <?php endif; ?>
             <button class="navbar-toggler border-0 p-0 d-flex align-items-center justify-content-center rounded-3" type="button" data-bs-toggle="collapse" data-bs-target="#navColapse" style="width:34px;height:34px;background:var(--hover-bg);">
@@ -383,6 +391,25 @@ $sep = str_contains($url_sin_lang, '?') ? '&' : '?';
             </div>
             <div class="modal-body p-4 pt-2">
                 <h4 class="fw-bold mb-4 premium-text">Bienvenido de nuevo</h4>
+
+                <!-- BOTÓN GOOGLE -->
+                <a href="google_login.php" class="btn w-100 rounded-pill fw-semibold mb-3 d-flex align-items-center justify-content-center gap-2"
+                   style="border:1.5px solid var(--border-color);background:var(--card-bg);color:var(--text-main);font-size:.9rem;padding:.65rem 1rem;">
+                    <svg width="18" height="18" viewBox="0 0 48 48">
+                        <path fill="#EA4335" d="M24 9.5c3.54 0 6.71 1.22 9.21 3.6l6.85-6.85C35.9 2.38 30.47 0 24 0 14.62 0 6.51 5.38 2.56 13.22l7.98 6.19C12.43 13.72 17.74 9.5 24 9.5z"/>
+                        <path fill="#4285F4" d="M46.98 24.55c0-1.57-.15-3.09-.38-4.55H24v9.02h12.94c-.58 2.96-2.26 5.48-4.78 7.18l7.73 6c4.51-4.18 7.09-10.36 7.09-17.65z"/>
+                        <path fill="#FBBC05" d="M10.53 28.59c-.48-1.45-.76-2.99-.76-4.59s.27-3.14.76-4.59l-7.98-6.19C.92 16.46 0 20.12 0 24c0 3.88.92 7.54 2.56 10.78l7.97-6.19z"/>
+                        <path fill="#34A853" d="M24 48c6.48 0 11.93-2.13 15.89-5.81l-7.73-6c-2.18 1.48-4.97 2.35-8.16 2.35-6.26 0-11.57-4.22-13.47-9.91l-7.98 6.19C6.51 42.62 14.62 48 24 48z"/>
+                        <path fill="none" d="M0 0h48v48H0z"/>
+                    </svg>
+                    Continuar con Google
+                </a>
+
+                <div class="d-flex align-items-center gap-2 mb-3">
+                    <hr style="flex:1;border-color:var(--border-color);opacity:1;">
+                    <span class="premium-muted" style="font-size:.78rem;white-space:nowrap;">o con tu email</span>
+                    <hr style="flex:1;border-color:var(--border-color);opacity:1;">
+                </div>
                 <form action="login.php" method="POST">
                     <div class="mb-3">
                         <label class="form-label premium-muted small fw-bold"><?= t('modal_login_email') ?></label>

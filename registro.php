@@ -1,7 +1,4 @@
 <?php
-ini_set('display_errors', 1);
-ini_set('display_startup_errors', 1);
-error_reporting(E_ALL);
 session_start();
 require 'includes/lang.php';
 require 'includes/db.php';
@@ -45,8 +42,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         $stmt_check->store_result();
 
         if ($stmt_check->num_rows > 0) {
-            // Quitamos el error genérico para que el usuario sepa qué pasa
-            $mensaje     = "Este correo electrónico ya está registrado. Por favor, inicia sesión."; 
+            $mensaje     = t('error_generico');
             $tipo_alerta = "warning";
             $stmt_check->close();
         } else {
@@ -55,26 +51,13 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
             $password_hashed = password_hash($password, PASSWORD_DEFAULT);
             $token           = bin2hex(random_bytes(16));
 
-            // ¡ESTO ERA LO QUE FALTABA! La preparación de la consulta:
             $stmt_insert = $conn->prepare(
                 "INSERT INTO usuarios (nombre, email, password, rol, verificado, token_verificacion)
                  VALUES (?, ?, ?, 'cliente', 0, ?)"
             );
             $stmt_insert->bind_param("ssss", $nombre, $email, $password_hashed, $token);
 
-            // Ahora sí, la ejecución no dará error de variable indefinida
             if ($stmt_insert->execute()) {
-                $nuevo_usuario_id = $stmt_insert->insert_id;
-
-                // Vinculamos los productos del carrito temporal de visitante a la nueva cuenta
-                if (isset($_SESSION['carrito_token'])) {
-                    $token_carrito = $_SESSION['carrito_token'];
-                    $stmt_carrito = $conn->prepare("UPDATE carritos SET usuario_id = ? WHERE token_sesion = ?");
-                    $stmt_carrito->bind_param("is", $nuevo_usuario_id, $token_carrito);
-                    $stmt_carrito->execute();
-                    $stmt_carrito->close();
-                }
-
                 // EMAIL de verificación via Brevo (PHPMailer)
                 require_once __DIR__ . '/includes/mailer.php';
                 mail_verificacion($email, $nombre, $token);
@@ -82,8 +65,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                 $mensaje     = t('exito_generico');
                 $tipo_alerta = "success";
             } else {
-                // MODO DEPURACIÓN
-                $mensaje     = "Error de Base de Datos: " . $stmt_insert->error;
+                $mensaje     = t('error_generico');
                 $tipo_alerta = "danger";
             }
             $stmt_insert->close();
@@ -114,6 +96,24 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                         <i class="bi bi-person-plus-fill fs-1 text-primary"></i>
                         <h2 class="fw-bold mt-2 premium-text"><?= t('registro_titulo') ?></h2>
                         <p class="premium-muted"><?= t('registro_subtitulo') ?></p>
+                    </div>
+
+                    <!-- BOTÓN GOOGLE -->
+                    <a href="google_login.php" class="btn w-100 rounded-pill fw-semibold mb-3 d-flex align-items-center justify-content-center gap-2"
+                       style="border:1.5px solid var(--border-color);background:var(--card-bg);color:var(--text-main);font-size:.9rem;padding:.65rem 1rem;">
+                        <svg width="18" height="18" viewBox="0 0 48 48">
+                            <path fill="#EA4335" d="M24 9.5c3.54 0 6.71 1.22 9.21 3.6l6.85-6.85C35.9 2.38 30.47 0 24 0 14.62 0 6.51 5.38 2.56 13.22l7.98 6.19C12.43 13.72 17.74 9.5 24 9.5z"/>
+                            <path fill="#4285F4" d="M46.98 24.55c0-1.57-.15-3.09-.38-4.55H24v9.02h12.94c-.58 2.96-2.26 5.48-4.78 7.18l7.73 6c4.51-4.18 7.09-10.36 7.09-17.65z"/>
+                            <path fill="#FBBC05" d="M10.53 28.59c-.48-1.45-.76-2.99-.76-4.59s.27-3.14.76-4.59l-7.98-6.19C.92 16.46 0 20.12 0 24c0 3.88.92 7.54 2.56 10.78l7.97-6.19z"/>
+                            <path fill="#34A853" d="M24 48c6.48 0 11.93-2.13 15.89-5.81l-7.73-6c-2.18 1.48-4.97 2.35-8.16 2.35-6.26 0-11.57-4.22-13.47-9.91l-7.98 6.19C6.51 42.62 14.62 48 24 48z"/>
+                        </svg>
+                        Registrarse con Google
+                    </a>
+
+                    <div class="d-flex align-items-center gap-2 mb-3">
+                        <hr style="flex:1;border-color:var(--border-color);opacity:1;">
+                        <span class="premium-muted" style="font-size:.78rem;white-space:nowrap;">o con tu email</span>
+                        <hr style="flex:1;border-color:var(--border-color);opacity:1;">
                     </div>
 
                     <?php if ($mensaje != ''): ?>

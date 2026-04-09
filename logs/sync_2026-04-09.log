@@ -1,0 +1,12 @@
+[2026-04-09 03:00:01] ============================================================
+[2026-04-09 03:00:01] ALGORYA - Inicio de sincronizacion de catalogo
+[2026-04-09 03:00:01] ============================================================
+[2026-04-09 03:00:01] Conectando con DummyJSON (fuente principal)...
+[2026-04-09 03:00:02] DummyJSON: 96 productos obtenidos.
+[2026-04-09 03:00:02] Total productos obtenidos de todas las fuentes: 96
+[2026-04-09 03:00:02] Limpiando productos de API anteriores (datos nuevos confirmados)...
+PHP Fatal error:  Uncaught mysqli_sql_exception: Cannot delete or update a parent row: a foreign key constraint fails (`tienda_db`.`lineas_pedido`, CONSTRAINT `lineas_pedido_ibfk_2` FOREIGN KEY (`producto_id`) REFERENCES `productos` (`id`)) in /var/www/tfg/sync_catalogo.php:321
+Stack trace:
+#0 /var/www/tfg/sync_catalogo.php(321): mysqli->query()
+#1 {main}
+  thrown in /var/www/tfg/sync_catalogo.php on line 321
