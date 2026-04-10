@@ -23,6 +23,7 @@ if (isset($_POST['add_to_cart'])) {
         foreach ($_SESSION['carrito'] as &$item) {
             if ($item['id'] == $_POST['id']) { $item['cantidad'] += $cantidad_pedida; $encontrado = true; break; }
         }
+        unset($item);
         if (!$encontrado) {
             $_SESSION['carrito'][] = ['id'=>$_POST['id'],'nombre'=>$_POST['nombre'],'precio'=>$_POST['precio'],'imagen'=>$_POST['imagen'],'cantidad'=>$cantidad_pedida];
         }
