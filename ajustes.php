@@ -73,8 +73,28 @@ if (isset($_POST['guardar_notificaciones'])) {
     $stmt->close();
     $seccion_activa = 'notificaciones';
 }
+// --- NUEVO BLOQUE: ACTIVAR/DESACTIVAR 2FA ---
+if (isset($_POST['toggle_2fa'])) {
+    // Averiguamos cómo lo tiene ahora para ponerlo al revés
+    $stmt_check = $conn->prepare("SELECT usa_2fa FROM usuarios WHERE id = ?");
+    $stmt_check->bind_param("i", $uid);
+    $stmt_check->execute();
+    $estado_actual = $stmt_check->get_result()->fetch_assoc()['usa_2fa'];
+    $stmt_check->close();
 
-$stmt_user = $conn->prepare("SELECT nombre, email, notif_promos, notif_pedidos FROM usuarios WHERE id = ?");
+    $nuevo_estado = ($estado_actual == 1) ? 0 : 1;
+
+    $stmt_upd = $conn->prepare("UPDATE usuarios SET usa_2fa = ? WHERE id = ?");
+    $stmt_upd->bind_param("ii", $nuevo_estado, $uid);
+    $stmt_upd->execute();
+    $stmt_upd->close();
+
+    $mensaje = t('exito_generico');
+    $tipo_mensaje = "success";
+    $seccion_activa = 'seguridad';
+}
+
+$stmt_user = $conn->prepare("SELECT nombre, email, notif_promos, notif_pedidos, usa_2fa FROM usuarios WHERE id = ?");
 $stmt_user->bind_param("i", $uid);
 $stmt_user->execute();
 $usuario = $stmt_user->get_result()->fetch_assoc();
@@ -276,11 +296,20 @@ $stmt_user->close();
                                     <?= t('ajustes_2fa_texto') ?>
                                 </p>
                             </div>
-                            <button class="btn btn-outline-secondary btn-sm rounded-pill" disabled>
-                                <?= t('ajustes_2fa_btn') ?>
-                            </button>
+                            
+                            <form action="ajustes.php?seccion=seguridad" method="POST" class="m-0">
+                                <?php if ($usuario['usa_2fa'] == 1): ?>
+                                    <button type="submit" name="toggle_2fa" class="btn btn-danger btn-sm rounded-pill fw-bold px-3">
+                                        <i class="bi bi-x-circle me-1"></i> Desactivar
+                                    </button>
+                                <?php else: ?>
+                                    <button type="submit" name="toggle_2fa" class="btn btn-success btn-sm rounded-pill fw-bold px-3">
+                                        <i class="bi bi-shield-check me-1"></i> Activar
+                                    </button>
+                                <?php endif; ?>
+                            </form>
+                            
                         </div>
-                    </div>
 
                     <!-- PESTAÑA 3: NOTIFICACIONES -->
                     <div class="tab-pane fade <?= ($seccion_activa == 'notificaciones') ? 'show active' : '' ?>"

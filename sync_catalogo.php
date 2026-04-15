@@ -318,23 +318,51 @@ while ($row = $res_imgs->fetch_assoc()) {
     $imagenes_a_borrar[] = $row['imagen'];
 }
 
+// 1. Ocultar (Stock = 0) los productos de APIs que YA han sido vendidos alguna vez
 $conn->query(
-    "DELETE FROM productos
-     WHERE imagen LIKE 'fakestore_%'
-        OR imagen LIKE 'dummyjson_%'
-        OR imagen LIKE 'platzi_%'
-        OR imagen LIKE 'api_%'"
+    "UPDATE productos p
+     INNER JOIN lineas_pedido lp ON p.id = lp.producto_id
+     SET p.stock = 0
+     WHERE p.imagen LIKE 'fakestore_%'
+        OR p.imagen LIKE 'dummyjson_%'
+        OR p.imagen LIKE 'platzi_%'
+        OR p.imagen LIKE 'api_%'"
 );
-$borrados_bd  = $conn->affected_rows;
+$ocultados_bd = $conn->affected_rows;
+
+// 2. Borrar definitivamente los productos de APIs que NUNCA se han vendido
+$conn->query(
+    "DELETE p FROM productos p
+     LEFT JOIN lineas_pedido lp ON p.id = lp.producto_id
+     WHERE lp.producto_id IS NULL
+       AND (p.imagen LIKE 'fakestore_%'
+         OR p.imagen LIKE 'dummyjson_%'
+         OR p.imagen LIKE 'platzi_%'
+         OR p.imagen LIKE 'api_%')"
+);
+$borrados_bd = $conn->affected_rows;
+
+// 3. Limpieza física de imágenes segura
 $borrados_img = 0;
 foreach ($imagenes_a_borrar as $img) {
     $ruta = IMG_DIR . $img;
-    if ($img !== 'default.jpg' && file_exists($ruta)) {
+    
+    // Antes de borrar la foto, comprobamos si el producto se salvó del borrado (porque tenía pedidos)
+    $stmt_check = $conn->prepare("SELECT id FROM productos WHERE imagen = ?");
+    $stmt_check->bind_param("s", $img);
+    $stmt_check->execute();
+    $existe = $stmt_check->get_result()->num_rows > 0;
+    $stmt_check->close();
+
+    // Solo borramos la imagen física si el producto realmente desapareció de la BD
+    if (!$existe && $img !== 'default.jpg' && file_exists($ruta)) {
         @unlink($ruta);
         $borrados_img++;
     }
 }
-log_msg("  -> Registros BD eliminados : {$borrados_bd}");
+
+log_msg("  -> Registros BD ocultados (con ventas): {$ocultados_bd}");
+log_msg("  -> Registros BD eliminados (sin ventas): {$borrados_bd}");
 log_msg("  -> Imagenes fisicas borradas: {$borrados_img}");
 
 // =============================================================================

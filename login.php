@@ -1,4 +1,10 @@
 <?php
+ob_start(); // Retenemos cualquier salida de texto para evitar el Error 500 de cabeceras
+
+ini_set('display_errors', 1);
+ini_set('display_startup_errors', 1);
+error_reporting(E_ALL);
+
 session_start();
 require 'includes/lang.php';
 require 'includes/db.php';
@@ -16,7 +22,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['login'])) {
     $password = $_POST['password'];
     $viene_del_modal = isset($_POST['redirect']) && $_POST['redirect'] === 'index.php';
 
-    $stmt = $conn->prepare("SELECT id, nombre, password, rol, verificado FROM usuarios WHERE email = ?");
+    $stmt = $conn->prepare("SELECT id, nombre, email, password, rol, verificado, usa_2fa FROM usuarios WHERE email = ?");
     $stmt->bind_param("s", $email);
     $stmt->execute();
     $resultado = $stmt->get_result();
@@ -26,63 +32,75 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['login'])) {
 
         if (password_verify($password, $usuario['password'])) {
             if ($usuario['verificado'] == 0) {
-                // t() correcto: dentro de PHP, usando la clave del diccionario
                 $error = t('modal_login_error');
             } else {
-                $_SESSION['user_id'] = $usuario['id'];
-                $_SESSION['nombre']  = $usuario['nombre'];
-                $_SESSION['rol']     = $usuario['rol'];
+                
+                // --- COMPROBAMOS EL INTERRUPTOR 2FA ---
+                if ($usuario['usa_2fa'] == 1) {
+                    
+                    // 1. Generar código de 6 cifras y caducidad (10 min)
+                    $codigo_seguridad = sprintf("%06d", mt_rand(1, 999999));
+                    $caducidad = date("Y-m-d H:i:s", strtotime('+10 minutes'));
 
-                // ─────────────────────────────────────────────────────────
-                // FUSIÓN DE CARRITO: si el visitante tenía productos en
-                // el carrito de sesión antes de iniciar sesión, los
-                // incorporamos al carrito de BD sin perder los que ya
-                // tuviera guardados. Si el producto ya existe en BD,
-                // sumamos las cantidades.
-                // ─────────────────────────────────────────────────────────
-                if (!empty($_SESSION['carrito'])) {
-                    $uid_login = (int)$_SESSION['user_id'];
-                    $stmt_check_cart = $conn->prepare(
-                        "SELECT id, cantidad FROM carritos WHERE usuario_id = ? AND producto_id = ?"
-                    );
-                    $stmt_update_cart = $conn->prepare(
-                        "UPDATE carritos SET cantidad = cantidad + ? WHERE usuario_id = ? AND producto_id = ?"
-                    );
-                    $stmt_insert_cart = $conn->prepare(
-                        "INSERT INTO carritos (usuario_id, producto_id, cantidad) VALUES (?, ?, ?)"
-                    );
+                    // 2. Guardar en BD
+                    $stmt_2fa = $conn->prepare("UPDATE usuarios SET codigo_2fa = ?, expira_2fa = ? WHERE id = ?");
+                    $stmt_2fa->bind_param("ssi", $codigo_seguridad, $caducidad, $usuario['id']);
+                    $stmt_2fa->execute();
+                    $stmt_2fa->close();
 
-                    foreach ($_SESSION['carrito'] as $item) {
-                        $prod_id  = (int)$item['id'];
-                        $cantidad = (int)$item['cantidad'];
+                    // 3. Enviar correo
+                    require_once __DIR__ . '/includes/mailer.php';
+                    $asunto = "[Algorya] Tu código de acceso seguro";
+                    $cuerpo = "Hola {$usuario['nombre']},\n\nTu código de verificación de 6 dígitos es: {$codigo_seguridad}\n\nEste código caducará en 10 minutos. Si no has intentado iniciar sesión, cambia tu contraseña inmediatamente.\n";
+                    algorya_mail($usuario['email'], $usuario['nombre'], $asunto, $cuerpo);
 
-                        $stmt_check_cart->bind_param("ii", $uid_login, $prod_id);
-                        $stmt_check_cart->execute();
-                        $stmt_check_cart->store_result();
+                    // 4. Crear sesión temporal y redirigir
+                    $_SESSION['temp_user_id'] = $usuario['id'];
+                    $stmt->close();
+                    header("Location: 2fa.php");
+                    exit();
 
-                        if ($stmt_check_cart->num_rows > 0) {
-                            // Ya existe en BD → sumar cantidades
-                            $stmt_update_cart->bind_param("iii", $cantidad, $uid_login, $prod_id);
-                            $stmt_update_cart->execute();
-                        } else {
-                            // No existe → insertar
-                            $stmt_insert_cart->bind_param("iii", $uid_login, $prod_id, $cantidad);
-                            $stmt_insert_cart->execute();
+                } else {
+                    // --- LOGIN DIRECTO (Sin 2FA) ---
+                    $_SESSION['user_id'] = $usuario['id'];
+                    $_SESSION['nombre']  = $usuario['nombre'];
+                    $_SESSION['rol']     = $usuario['rol'];
+                    
+                    // FUSIÓN DE CARRITO
+                    if (!empty($_SESSION['carrito'])) {
+                        $uid_login = (int)$_SESSION['user_id'];
+                        $stmt_check_cart = $conn->prepare("SELECT id, cantidad FROM carritos WHERE usuario_id = ? AND producto_id = ?");
+                        $stmt_update_cart = $conn->prepare("UPDATE carritos SET cantidad = cantidad + ? WHERE usuario_id = ? AND producto_id = ?");
+                        $stmt_insert_cart = $conn->prepare("INSERT INTO carritos (usuario_id, producto_id, cantidad) VALUES (?, ?, ?)");
+
+                        foreach ($_SESSION['carrito'] as $item) {
+                            $prod_id  = (int)$item['id'];
+                            $cantidad = (int)$item['cantidad'];
+
+                            $stmt_check_cart->bind_param("ii", $uid_login, $prod_id);
+                            $stmt_check_cart->execute();
+                            $stmt_check_cart->store_result();
+
+                            if ($stmt_check_cart->num_rows > 0) {
+                                $stmt_update_cart->bind_param("iii", $cantidad, $uid_login, $prod_id);
+                                $stmt_update_cart->execute();
+                            } else {
+                                $stmt_insert_cart->bind_param("iii", $uid_login, $prod_id, $cantidad);
+                                $stmt_insert_cart->execute();
+                            }
+                            $stmt_check_cart->free_result();
                         }
-                        $stmt_check_cart->free_result();
+                        $stmt_check_cart->close();
+                        $stmt_update_cart->close();
+                        $stmt_insert_cart->close();
+                        unset($_SESSION['carrito']);
                     }
 
-                    $stmt_check_cart->close();
-                    $stmt_update_cart->close();
-                    $stmt_insert_cart->close();
-
-                    // Vaciar el carrito de sesión — ya está en la BD
-                    unset($_SESSION['carrito']);
-                }
-                $stmt->close();
-                header("Location: " . ($_SESSION['rol'] === 'admin' ? 'admin_pedidos.php' : 'index.php'));
-                exit();
-            }
+                    $stmt->close();
+                    header("Location: " . ($_SESSION['rol'] === 'admin' ? 'admin_pedidos.php' : 'index.php'));
+                    exit();
+                } // FIN ELSE LOGIN DIRECTO
+            } // FIN ELSE VERIFICADO
         } else {
             $error = t('modal_login_error');
         }
@@ -96,7 +114,9 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['login'])) {
         header("Location: index.php?error=1");
         exit();
     }
-}
+} 
+
+ob_end_flush(); // Liberamos el buffer antes de cargar el HTML
 ?>
 <!DOCTYPE html>
 <html lang="<?= LANG ?>" data-bs-theme="light">
@@ -139,9 +159,14 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['login'])) {
                                    id="email" name="email" placeholder="tu@correo.com" required autofocus>
                         </div>
                         <div class="mb-4">
-                            <label for="password" class="form-label fw-bold premium-text">
-                                <?= t('login_password') ?>
-                            </label>
+                            <div class="d-flex justify-content-between align-items-center mb-1">
+                                <label for="password" class="form-label fw-bold premium-text mb-0">
+                                    <?= t('login_password') ?>
+                                </label>
+                                <a href="recuperar_password.php" class="text-primary text-decoration-none small fw-bold">
+                                    ¿Olvidaste tu contraseña?
+                                </a>
+                            </div>
                             <div class="input-group">
                                 <input type="password" class="form-control premium-input shadow-none py-2"
                                        id="password" name="password" placeholder="••••••••" required>

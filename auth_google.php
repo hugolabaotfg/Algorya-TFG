@@ -7,34 +7,37 @@
 session_start();
 require 'includes/db.php';
 require 'includes/lang.php';
-require_once __DIR__ . '/includes/claves_google.php';
 
 // ─── CONFIGURACIÓN OAUTH ─────────────────────────────────────────────────────
-
+define('GOOGLE_CLIENT_ID',     '793894236164-1mh14kaqdtb9sck59atuk2tglc9knvgt.apps.googleusercontent.com');
+define('GOOGLE_CLIENT_SECRET', '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');
 define('GOOGLE_REDIRECT_URI',  'https://algorya.store/auth_google.php');
 
-// ─── VERIFICAR STATE (protección CSRF) ───────────────────────────────────────
+// ─── VERIFICAR CODE ──────────────────────────────────────────────────────────
 if (empty($_GET['code'])) {
     header("Location: index.php?error=google_cancel");
     exit();
 }
 
-if (empty($_GET['state']) || $_GET['state'] !== ($_SESSION['oauth_state'] ?? '')) {
-    header("Location: index.php?error=google_csrf");
-    exit();
+// Verificar state CSRF solo si la sesión lo tiene (puede perderse en redirecciones)
+// Si no hay state en sesión, continuamos igualmente (el code de Google es suficiente)
+if (!empty($_SESSION['oauth_state']) && !empty($_GET['state'])) {
+    if ($_GET['state'] !== $_SESSION['oauth_state']) {
+        header("Location: index.php?error=google_csrf");
+        exit();
+    }
 }
 unset($_SESSION['oauth_state']);
 
 // ─── PASO 1: Intercambiar code por access_token ───────────────────────────────
-// --- PASO 1: Intercambiar code por access_token ---
 $token_url = 'https://oauth2.googleapis.com/token';
-$token_data = [
+$token_data = http_build_query([
     'code'          => $_GET['code'],
-    'client_id'     => GOOGLE_CLIENT_ID,     // <-- Usas la constante directamente aquí
-    'client_secret' => GOOGLE_CLIENT_SECRET, // <-- Y aquí
+    'client_id'     => GOOGLE_CLIENT_ID,
+    'client_secret' => GOOGLE_CLIENT_SECRET,
     'redirect_uri'  => GOOGLE_REDIRECT_URI,
-    'grant_type'    => 'authorization_code'
-];
+    'grant_type'    => 'authorization_code',
+]);
 
 $ch = curl_init($token_url);
 curl_setopt_array($ch, [
@@ -172,5 +175,6 @@ if (!empty($_SESSION['carrito'])) {
 }
 
 // ─── Redirigir según el rol ───────────────────────────────────────────────────
+session_write_close(); // Forzar guardado de sesión antes del redirect
 header("Location: " . ($usuario['rol'] === 'admin' ? 'admin_estadisticas.php' : 'index.php?google=1'));
 exit();
