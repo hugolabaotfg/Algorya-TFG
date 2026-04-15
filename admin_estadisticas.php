@@ -29,6 +29,23 @@ $productos_destacados= (int)$conn->query("SELECT COUNT(*) as t FROM productos WH
 $stock_total         = (int)$conn->query("SELECT COALESCE(SUM(stock),0) as t FROM productos WHERE activo=1")->fetch_assoc()['t'];
 $stock_bajo          = (int)$conn->query("SELECT COUNT(*) as t FROM productos WHERE stock<=5 AND activo=1")->fetch_assoc()['t'];
 
+// ── TELEMETRÍA (VISITAS) ─────────────────────────────────────────────────────
+$visitas_total = (int)$conn->query("SELECT COUNT(*) as t FROM visitas")->fetch_assoc()['t'];
+$visitas_hoy   = (int)$conn->query("SELECT COUNT(*) as t FROM visitas WHERE DATE(fecha)=CURDATE()")->fetch_assoc()['t'];
+
+// Gráfico: Dispositivos
+$res_disp = $conn->query("SELECT dispositivo, COUNT(*) as t FROM visitas GROUP BY dispositivo");
+$g_disp_l = []; $g_disp_d = [];
+while ($r = $res_disp->fetch_assoc()) { $g_disp_l[] = $r['dispositivo']; $g_disp_d[] = (int)$r['t']; }
+
+// Top Países
+$res_pais = $conn->query("SELECT pais, COUNT(*) as t FROM visitas GROUP BY pais ORDER BY t DESC LIMIT 4");
+$top_paises = $res_pais->fetch_all(MYSQLI_ASSOC);
+
+// Top Ciudades
+$res_ciudad = $conn->query("SELECT ciudad, COUNT(*) as t FROM visitas WHERE ciudad != 'Desconocida' GROUP BY ciudad ORDER BY t DESC LIMIT 4");
+$top_ciudades = $res_ciudad->fetch_all(MYSQLI_ASSOC);
+
 // ── GRÁFICO: Ingresos 30 días ─────────────────────────────────────────────────
 $res = $conn->query("SELECT DATE(fecha) as dia, SUM(total) as td FROM pedidos WHERE fecha>=DATE_SUB(NOW(),INTERVAL 30 DAY) GROUP BY DATE(fecha) ORDER BY dia ASC");
 $g_dias = []; $g_totales = [];
@@ -133,12 +150,99 @@ $res_ultimos = $conn->query("SELECT p.id,p.total,p.fecha,p.estado,u.nombre as cl
                 Actualizado el <?= date('d/m/Y \a \l\a\s H:i') ?>
             </p>
         </div>
-        <a href="admin_pedidos.php" class="btn btn-primary rounded-pill px-4 fw-bold" style="font-size:.85rem;">
-            <i class="bi bi-receipt me-1"></i>Ver pedidos
-        </a>
+        <div class="d-flex gap-2">
+            <a href="exportar_csv.php?tipo=estadisticas" class="btn btn-success rounded-pill px-3 fw-bold shadow-sm d-flex align-items-center" style="font-size:.85rem;">
+                <i class="bi bi-file-earmark-spreadsheet me-2 fs-6"></i>Exportar KPIs
+            </a>
+            <a href="admin_pedidos.php" class="btn btn-primary rounded-pill px-4 fw-bold shadow-sm d-flex align-items-center" style="font-size:.85rem;">
+                <i class="bi bi-receipt me-2 fs-6"></i>Ver pedidos
+            </a>
+        </div>
     </div>
 
     <!-- ── FILA 1: KPIs VENTAS ─────────────────────────────────────────────── -->
+     <div class="row g-3 mb-4">
+        
+        <div class="col-lg-4">
+            <div class="premium-card admin-card rounded-4 p-4 h-100 d-flex flex-column">
+                <div class="d-flex justify-content-between align-items-center mb-4">
+                    <h6 class="fw-bold premium-text mb-0" style="font-size:.85rem;letter-spacing:-.01em;">
+                        <i class="bi bi-radar text-primary me-2"></i>Tráfico General
+                    </h6>
+                </div>
+                <div class="d-flex gap-3 mb-4">
+                    <div class="flex-grow-1 p-3 rounded-3" style="background:var(--hover-bg); border:1px solid var(--border-color);">
+                        <div class="premium-muted mb-1" style="font-size:.7rem; font-weight:700; text-transform:uppercase;">Visitas Hoy</div>
+                        <div class="fw-black text-primary" style="font-size:1.4rem; font-family:'Outfit',sans-serif;"><?= $visitas_hoy ?></div>
+                    </div>
+                    <div class="flex-grow-1 p-3 rounded-3" style="background:var(--hover-bg); border:1px solid var(--border-color);">
+                        <div class="premium-muted mb-1" style="font-size:.7rem; font-weight:700; text-transform:uppercase;">Visitas Totales</div>
+                        <div class="fw-black premium-text" style="font-size:1.4rem; font-family:'Outfit',sans-serif;"><?= $visitas_total ?></div>
+                    </div>
+                </div>
+                
+                <h6 class="fw-bold premium-text mb-3" style="font-size:.75rem; text-transform:uppercase;">Top Ciudades</h6>
+                <div class="d-flex flex-column gap-2 flex-grow-1 justify-content-center">
+                    <?php if(empty($top_ciudades)): ?>
+                        <div class="premium-muted small text-center">Sin datos de ciudades</div>
+                    <?php else: ?>
+                        <?php foreach($top_ciudades as $c): ?>
+                        <div class="d-flex justify-content-between align-items-center p-2 rounded-2" style="border:1px solid var(--border-color);">
+                            <span class="premium-text" style="font-size:.8rem;"><i class="bi bi-geo-alt-fill text-danger me-2"></i><?= htmlspecialchars($c['ciudad']) ?></span>
+                            <span class="badge bg-secondary-subtle text-secondary rounded-pill"><?= $c['t'] ?></span>
+                        </div>
+                        <?php endforeach; ?>
+                    <?php endif; ?>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-lg-4">
+            <div class="premium-card admin-card rounded-4 p-4 h-100">
+                <div class="d-flex justify-content-between align-items-center mb-4">
+                    <h6 class="fw-bold premium-text mb-0" style="font-size:.85rem;">
+                        <i class="bi bi-globe-americas text-success me-2"></i>Top Países
+                    </h6>
+                </div>
+                <div class="d-flex flex-column gap-4 mt-2">
+                    <?php if (empty($top_paises)): ?>
+                        <div class="text-center premium-muted py-3"><i class="bi bi-map fs-2 mb-2 d-block"></i>Sin datos</div>
+                    <?php else: ?>
+                        <?php foreach($top_paises as $p):
+                            $porcentaje = $visitas_total > 0 ? round(($p['t'] / $visitas_total) * 100) : 0;
+                        ?>
+                        <div>
+                            <div class="d-flex justify-content-between mb-2" style="font-size:.8rem;">
+                                <span class="fw-semibold premium-text"><?= htmlspecialchars($p['pais']) ?></span>
+                                <span class="premium-muted fw-bold"><?= $p['t'] ?> <span class="fw-normal">(<?= $porcentaje ?>%)</span></span>
+                            </div>
+                            <div class="progress" style="height: 8px; background: var(--hover-bg); border-radius:10px;">
+                                <div class="progress-bar bg-success" style="width: <?= $porcentaje ?>%; border-radius:10px;"></div>
+                            </div>
+                        </div>
+                        <?php endforeach; ?>
+                    <?php endif; ?>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-lg-4">
+            <div class="premium-card admin-card rounded-4 p-4 h-100">
+                <h6 class="fw-bold premium-text mb-3" style="font-size:.85rem;letter-spacing:-.01em;">
+                    <i class="bi bi-laptop text-info me-2"></i>Dispositivos
+                </h6>
+                <?php if (empty($g_disp_l)): ?>
+                <div class="d-flex flex-column align-items-center justify-content-center premium-muted py-4">
+                    <i class="bi bi-pie-chart fs-1 mb-2"></i>
+                    <span style="font-size:.85rem;">Sin datos</span>
+                </div>
+                <?php else: ?>
+                <canvas id="graficoDispositivos" height="180"></canvas>
+                <?php endif; ?>
+            </div>
+        </div>
+        
+    </div>
     <div class="row g-3 mb-3">
 
         <div class="col-6 col-xl-3">
@@ -381,6 +485,21 @@ new Chart(document.getElementById('graficoTop'), {
             x: { ticks: { color: clr.muted, font: { size: 10 } }, grid: { color: clr.grid } },
             y: { ticks: { color: clr.text,  font: { size: 10 } }, grid: { display: false } }
         }
+    }
+});
+<?php endif; ?>
+<?php if (!empty($g_disp_l)): ?>
+new Chart(document.getElementById('graficoDispositivos'), {
+    type: 'doughnut',
+    data: { labels: <?= json_encode($g_disp_l) ?>,
+        datasets: [{ data: <?= json_encode($g_disp_d) ?>,
+            backgroundColor: ['#0dcaf0', '#3b82f6', '#6366f1'],
+            borderWidth: 0, hoverOffset: 5 }]
+    },
+    options: { cutout: '70%',
+        plugins: { legend: { position: 'bottom',
+            labels: { color: clr.text, font: { size: 11, family: fontFamily }, padding: 15, usePointStyle: true }
+        }}
     }
 });
 <?php endif; ?>

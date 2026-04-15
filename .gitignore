@@ -1,2 +1,4 @@
 includes/claves_smtp.php
-includes/claves_google.php
+includes/claves_google.phpincludes/config_oauth.php
+includes/mailer.php
+includes/config.php

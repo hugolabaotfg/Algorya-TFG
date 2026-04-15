@@ -229,9 +229,15 @@ function badge_cls(string $e): string {
                 Haz clic en cualquier fila para ver el detalle de productos
             </p>
         </div>
-        <a href="admin_estadisticas.php" class="btn btn-outline-primary rounded-pill px-3 fw-bold" style="font-size:.82rem;">
-            <i class="bi bi-bar-chart me-1"></i>Dashboard
-        </a>
+        
+        <div class="d-flex gap-2">
+            <a href="exportar_csv.php?tipo=pedidos" class="btn btn-success rounded-pill px-3 fw-bold shadow-sm d-flex align-items-center" style="font-size:.85rem;">
+                <i class="bi bi-file-earmark-spreadsheet me-2 fs-6"></i>Exportar Pedidos
+            </a>
+            <a href="admin_estadisticas.php" class="btn btn-outline-primary rounded-pill px-3 fw-bold d-flex align-items-center" style="font-size:.82rem;">
+                <i class="bi bi-bar-chart me-1 fs-6"></i>Dashboard
+            </a>
+        </div>
     </div>
 
     <?php if ($mensaje): ?>

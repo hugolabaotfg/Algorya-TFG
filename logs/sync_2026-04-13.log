@@ -1,0 +1,23 @@
+[2026-04-13 03:00:01] ============================================================
+[2026-04-13 03:00:01] ALGORYA - Inicio de sincronizacion de catalogo
+[2026-04-13 03:00:01] ============================================================
+[2026-04-13 03:00:01] Conectando con DummyJSON (fuente principal)...
+[2026-04-13 03:00:02] DummyJSON: 96 productos obtenidos.
+[2026-04-13 03:00:02] Total productos obtenidos de todas las fuentes: 96
+[2026-04-13 03:00:02] Limpiando productos de API anteriores (datos nuevos confirmados)...
+[2026-04-13 03:00:02]   -> Registros BD ocultados (con ventas): 0
+[2026-04-13 03:00:02]   -> Registros BD eliminados (sin ventas): 91
+[2026-04-13 03:00:02]   -> Imagenes fisicas borradas: 91
+[2026-04-13 03:00:02] Calculando puntuaciones de tendencia (trend_score)...
+[2026-04-13 03:00:02] Productos con trend_score >= 70 (DESTACADOS): 4
+[2026-04-13 03:00:02] Iniciando insercion/actualizacion en MariaDB...
+[2026-04-13 03:00:05] ------------------------------------------------------------
+[2026-04-13 03:00:05] SINCRONIZACION COMPLETADA:
+[2026-04-13 03:00:05]   -> Productos nuevos insertados : 91
+[2026-04-13 03:00:05]   -> Productos actualizados      : 5
+[2026-04-13 03:00:05]   -> Errores                     : 0
+[2026-04-13 03:00:05]   -> Total productos en catalogo : 97
+[2026-04-13 03:00:05]   -> Productos DESTACADOS        : 4
+[2026-04-13 03:00:05]   -> Paginas en el catalogo      : 9 (a 12 productos/pagina)
+[2026-04-13 03:00:05] ============================================================
+[2026-04-13 03:00:05] Fin de sincronizacion.
