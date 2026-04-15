@@ -7,6 +7,7 @@
 session_start();
 require 'includes/db.php';
 require 'includes/lang.php';
+require 'includes/config_oauth.php';
 
 // ─── CONFIGURACIÓN OAUTH ─────────────────────────────────────────────────────
 define('GOOGLE_CLIENT_ID',     '793894236164-1mh14kaqdtb9sck59atuk2tglc9knvgt.apps.googleusercontent.com');

@@ -3,10 +3,8 @@
 // ALGORYA - google_login.php
 // Genera el state CSRF y redirige al servidor de Google para autenticación.
 // =============================================================================
+require 'includes/config_oauth.php';
 session_start();
-
-define('GOOGLE_CLIENT_ID',    '793894236164-1mh14kaqdtb9sck59atuk2tglc9knvgt.apps.googleusercontent.com');
-define('GOOGLE_REDIRECT_URI', 'https://algorya.store/auth_google.php');
 
 // Generar state aleatorio para protección CSRF
 $state = bin2hex(random_bytes(16));
